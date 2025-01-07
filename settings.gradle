@@ -1,0 +1,9 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()  // This is essential to find Spring Boot plugin
+        mavenCentral()        // Ensure maven central is also available for other dependencies
+    }
+}
+rootProject.name = 'currency-exchange'
+
+
