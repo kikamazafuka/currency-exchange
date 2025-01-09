@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="1" author="ArturSemenas">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="currencies"/>
+            </not>
+        </preConditions>
+        <createTable tableName="currencies">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="currency" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" author="ArturSemenas">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="api_request_logs"/>
+            </not>
+        </preConditions>
+        <createTable tableName="api_request_logs">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="timestamp" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="url" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="response" type="TEXT"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
