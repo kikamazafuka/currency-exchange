@@ -7,7 +7,7 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
 
-    <changeSet id="1" author="ArturSemenas">
+    <changeSet id="3" author="ArturSemenas">
         <addColumn tableName="api_request_logs">
             <column name="request_currency" type="VARCHAR(3)">
                 <constraints nullable="false"/>
@@ -21,7 +21,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="2" author="ArturSemenas">
+    <changeSet id="4" author="ArturSemenas">
         <dropColumn tableName="api_request_logs" columnName="response"/>
     </changeSet>
 

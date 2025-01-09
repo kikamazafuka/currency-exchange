@@ -7,6 +7,11 @@
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
     <changeSet id="1" author="ArturSemenas">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="currencies"/>
+            </not>
+        </preConditions>
         <createTable tableName="currencies">
             <column name="id" type="SERIAL">
                 <constraints primaryKey="true" nullable="false"/>
@@ -18,6 +23,11 @@
     </changeSet>
 
     <changeSet id="2" author="ArturSemenas">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="api_request_logs"/>
+            </not>
+        </preConditions>
         <createTable tableName="api_request_logs">
             <column name="id" type="UUID">
                 <constraints primaryKey="true" nullable="false"/>
