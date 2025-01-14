@@ -26,6 +26,5 @@ public class Currency {
   private Long id;
 
   @Column(nullable = false, name = "currency")
-  @NotBlank(message = "Currency code cannot be empty")
   private String currencyCode;
 }

@@ -1,17 +1,17 @@
 package com.godeltech.currencyexchange.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.repository.CurrencyRepository;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CurrencyServiceTest {
@@ -37,6 +37,6 @@ class CurrencyServiceTest {
     List<Currency> currencies = currencyService.getAllCurrencies();
 
     assertThat(currencies).isNotNull();
-    assertThat(currencies.size()).isGreaterThan(1);
+    assertThat(currencies).containsExactly(usd, eur);
   }
 }

@@ -2,10 +2,12 @@ package com.godeltech.currencyexchange.service;
 
 import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.repository.CurrencyRepository;
+import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
+@Slf4j
 @Service
 public class CurrencyService {
 
