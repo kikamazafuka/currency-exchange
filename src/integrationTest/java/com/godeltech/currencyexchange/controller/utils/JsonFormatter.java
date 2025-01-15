@@ -1,9 +1,11 @@
 package com.godeltech.currencyexchange.controller.utils;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import lombok.SneakyThrows;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class JsonFormatter {
 
   private static final String WHITESPACE_REGEX = "\\s+";
@@ -22,11 +24,8 @@ public class JsonFormatter {
         .replaceAll(CLOSE_CURLY_BRACE_REGEX, "}");
   }
 
+  @SneakyThrows
   private static String readFile(String path) {
-    try {
-      return new String(Files.readAllBytes(Paths.get(path)));
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to read JSON file: " + path, e);
-    }
+    return new String(Files.readAllBytes(Paths.get(path)));
   }
 }

@@ -21,6 +21,7 @@ configurations {
     }
     integrationTestImplementation.extendsFrom testImplementation
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+    integrationTestCompileOnly.extendsFrom compileOnly
 }
 
 repositories {
