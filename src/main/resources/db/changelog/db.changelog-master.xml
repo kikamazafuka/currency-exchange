@@ -8,5 +8,6 @@
 
     <include file="/db/changelog/create-currencies-logs-tables-1.0.xml" />
     <include file="/db/changelog/alter-response-column-logs-table-2.0.xml" />
+    <include file="/db/changelog/currencies-table-init-data-3.0.xml" />
 
 </databaseChangeLog>

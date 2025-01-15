@@ -10,52 +10,63 @@ group = 'com.godeltech'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+    integrationTestCompileOnly.extendsFrom compileOnly
 }
 
 repositories {
-	mavenCentral()
-	gradlePluginPortal()
+    mavenCentral()
+    gradlePluginPortal()
 }
 
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.liquibase:liquibase-core'
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'org.postgresql:postgresql'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.liquibase:liquibase-core'
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    implementation 'org.mapstruct:mapstruct-processor:1.6.3'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.1'
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'org.postgresql:postgresql'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation "org.testcontainers:testcontainers:1.20.4"
+    testImplementation "org.testcontainers:junit-jupiter:1.20.4"
+    testImplementation "org.testcontainers:postgresql:1.20.4"
+    testImplementation 'io.rest-assured:rest-assured'
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
 checkstyle {
-	toolVersion = '10.21.1'
-	configFile = file('google_checks.xml')
+    toolVersion = '10.21.1'
+    configFile = file('google_checks.xml')
 }
 
 tasks.checkstyleMain {
-	source 'src/main/java'
-	include '**/*.java'
+    source 'src/main/java'
+    include '**/*.java'
 }
 
 tasks.checkstyleTest {
-	source 'src/test/java'
-	include '**/*.java'
+    source 'src/test/java'
+    include '**/*.java'
 }
 
 jacoco {
@@ -93,3 +104,28 @@ jacocoTestCoverageVerification {
 	}
 }
 
+sourceSets {
+    main {
+        java.srcDir 'src/main/java'
+        resources.srcDir 'src/main/resources'
+    }
+    integrationTest {
+        java.srcDir file('src/integrationTest/java')
+        resources.srcDir file('src/integrationTest/resources')
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    useJUnitPlatform()
+}
+
+check.dependsOn integrationTest
+
+tasks.withType(Copy).all { duplicatesStrategy 'exclude' }
