@@ -34,7 +34,7 @@ class CurrencyServiceTest {
 
     when(currencyRepository.findAll()).thenReturn(List.of(usd, eur));
 
-    List<Currency> currencies = currencyService.getAllCurrencies();
+    final var currencies = currencyService.getAllCurrencies();
 
     assertThat(currencies).isNotNull();
     assertThat(currencies).containsExactly(usd, eur);

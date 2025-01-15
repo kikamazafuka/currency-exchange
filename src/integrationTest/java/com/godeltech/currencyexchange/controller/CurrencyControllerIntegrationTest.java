@@ -1,7 +1,9 @@
 package com.godeltech.currencyexchange.controller;
 
 import static org.hamcrest.Matchers.hasItems;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.godeltech.currencyexchange.controller.utils.JsonFormatter;
 import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.repository.CurrencyRepository;
 import io.restassured.RestAssured;
@@ -23,7 +25,8 @@ public class CurrencyControllerIntegrationTest {
 
   @LocalServerPort private Integer port;
 
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
+  private static final PostgreSQLContainer<?> postgres =
+      new PostgreSQLContainer<>("postgres:16-alpine");
 
   @BeforeAll
   static void beforeAll() {
@@ -46,24 +49,34 @@ public class CurrencyControllerIntegrationTest {
 
   @BeforeEach
   void setUp() {
-    RestAssured.baseURI = "http://localhost:" + port;
+    RestAssured.reset();
     currencyRepository.deleteAll();
   }
 
   @Test
   void shouldGetAllCurrencies() {
-    List<Currency> currencies =
+    final var currencies =
         List.of(
             Currency.builder().currencyCode("USD").build(),
             Currency.builder().currencyCode("EUR").build());
     currencyRepository.saveAll(currencies);
 
-    RestAssured.given()
-        .contentType(ContentType.JSON)
-        .when()
-        .get("/api/v1/currencies")
-        .then()
-        .statusCode(200)
-        .body("currencyCode", hasItems("USD", "EUR"));
+    final var responseBody =
+        RestAssured.given()
+            .baseUri("http://localhost:" + port)
+            .contentType(ContentType.JSON)
+            .when()
+            .get("/api/v1/currencies")
+            .then()
+            .statusCode(200)
+            .body("currencyCode", hasItems("USD", "EUR"))
+            .extract()
+            .body()
+            .asString();
+
+    final var expectedBody =
+        JsonFormatter.transformJsonFormat("src/integrationTest/resources/expected_currencies.json");
+
+    assertEquals(expectedBody, responseBody);
   }
 }
