@@ -1,5 +1,6 @@
 package com.godeltech.currencyexchange.controller;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -28,9 +29,12 @@ public class CurrencyControllerIntegrationTest {
   private static final PostgreSQLContainer<?> postgres =
       new PostgreSQLContainer<>("postgres:16-alpine");
 
+  private Currency eur;
+
   @BeforeAll
   static void beforeAll() {
     postgres.start();
+    RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
   }
 
   @AfterAll
@@ -51,6 +55,7 @@ public class CurrencyControllerIntegrationTest {
   void setUp() {
     RestAssured.reset();
     currencyRepository.deleteAll();
+    eur = Currency.builder().currencyCode("EUR").build();
   }
 
   @Test
@@ -78,5 +83,38 @@ public class CurrencyControllerIntegrationTest {
         JsonFormatter.transformJsonFormat("src/integrationTest/resources/expected_currencies.json");
 
     assertEquals(expectedBody, responseBody);
+  }
+
+  @Test
+  void shouldAddCurrency() throws Exception {
+
+    final var validCurrency = "USD";
+
+    RestAssured.given()
+        .baseUri("http://localhost:" + port)
+        .contentType(ContentType.JSON)
+        .queryParam("currency", validCurrency)
+        .when()
+        .post("/api/v1/currencies")
+        .then()
+        .statusCode(201)
+        .body("currencyCode", equalTo(validCurrency));
+  }
+
+  @Test
+  void shouldAddCurrency_currencyExists() throws Exception {
+
+    final var validCurrency = "EUR";
+    currencyRepository.save(eur);
+
+    RestAssured.given()
+        .baseUri("http://localhost:" + port)
+        .contentType(ContentType.JSON)
+        .queryParam("currency", validCurrency)
+        .when()
+        .post("/api/v1/currencies")
+        .then()
+        .statusCode(400)
+        .body("message", equalTo("Currency with this code already exists"));
   }
 }
