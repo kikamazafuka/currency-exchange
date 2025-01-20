@@ -2,7 +2,6 @@ package com.godeltech.currencyexchange.controller;
 
 import com.godeltech.currencyexchange.dto.CurrencyDto;
 import com.godeltech.currencyexchange.mapper.CurrencyMapper;
-import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.service.CurrencyService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.NotBlank;
@@ -11,7 +10,6 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,7 +54,6 @@ public class CurrencyController {
 
     final var currencyDto = currencyService.addCurrency(currency);
 
-    return ResponseEntity.status(HttpStatus.CREATED)
-        .body(currencyDto);
+    return ResponseEntity.status(HttpStatus.CREATED).body(currencyDto);
   }
 }

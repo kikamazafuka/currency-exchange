@@ -5,10 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.godeltech.currencyexchange.dto.CurrencyDto;
-import com.godeltech.currencyexchange.exception.CurrencyAlreadyExistsException;
+import com.godeltech.currencyexchange.exception.EntityAlreadyExistsException;
 import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.repository.CurrencyRepository;
@@ -74,7 +75,7 @@ class CurrencyServiceTest {
 
     final var exception =
         assertThrows(
-            CurrencyAlreadyExistsException.class,
+            EntityAlreadyExistsException.class,
             () -> currencyService.addCurrency(currencyCode),
             "Expected addCurrency() to throw CurrencyAlreadyExistsException");
 
@@ -89,6 +90,8 @@ class CurrencyServiceTest {
     final var result = currencyService.existsByCurrencyCode(currencyCode);
 
     assertTrue(result);
+
+    verify(currencyRepository).existsByCurrencyCode(currencyCode);
   }
 
   @Test
@@ -99,5 +102,7 @@ class CurrencyServiceTest {
     final var result = currencyService.existsByCurrencyCode(currencyCode);
 
     assertFalse(result);
+
+    verify(currencyRepository).existsByCurrencyCode(currencyCode);
   }
 }

@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.godeltech.currencyexchange.JsonFormatter;
 import com.godeltech.currencyexchange.dto.CurrencyDto;
-import com.godeltech.currencyexchange.exception.CurrencyAlreadyExistsException;
+import com.godeltech.currencyexchange.exception.EntityAlreadyExistsException;
 import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.service.CurrencyService;
@@ -36,7 +36,7 @@ class CurrencyControllerTest {
 
   @MockitoBean private CurrencyMapper currencyMapper;
 
-  public static final String CURRENCIES_ENDPOINT = "/api/v1/currencies";
+  private static final String CURRENCIES_ENDPOINT = "/api/v1/currencies";
 
   private Currency eur;
   private Currency usd;
@@ -83,10 +83,19 @@ class CurrencyControllerTest {
     when(currencyService.addCurrency(currencyCode)).thenReturn(usdDto);
     when(currencyMapper.currencyToCurrencyDto(usd)).thenReturn(usdDto);
 
-    mockMvc
-        .perform(post(CURRENCIES_ENDPOINT).param("currency", currencyCode))
-        .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.currencyCode").value("USD"));
+    final var result =
+        mockMvc
+            .perform(post(CURRENCIES_ENDPOINT).param("currency", currencyCode))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+    final var responseBody = result.getResponse().getContentAsString();
+    final var expectedBody =
+        JsonFormatter.transformJsonFormat("src/test/resources/expected_body.json");
+
+    assertEquals(expectedBody, responseBody);
+
+    verify(currencyService).addCurrency(currencyCode);
   }
 
   @Test
@@ -123,7 +132,7 @@ class CurrencyControllerTest {
   void addCurrency_currencyAlreadyExists() {
 
     final var exception =
-        new CurrencyAlreadyExistsException("Currency with this code already exists");
+        new EntityAlreadyExistsException("Currency with this code already exists");
 
     when(currencyService.addCurrency(currencyCode)).thenThrow(exception);
 

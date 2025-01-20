@@ -27,8 +27,8 @@ public class GlobalExceptionHandler {
         .body(errorMessages);
   }
 
-  @ExceptionHandler(CurrencyAlreadyExistsException.class)
-  public ResponseEntity<String> handleCurrencyAlreadyExists(CurrencyAlreadyExistsException ex) {
+  @ExceptionHandler(EntityAlreadyExistsException.class)
+  public ResponseEntity<String> handleCurrencyAlreadyExists(EntityAlreadyExistsException ex) {
 
     log.error("Currency already exists");
 

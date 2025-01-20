@@ -1,7 +1,7 @@
 package com.godeltech.currencyexchange.service;
 
 import com.godeltech.currencyexchange.dto.CurrencyDto;
-import com.godeltech.currencyexchange.exception.CurrencyAlreadyExistsException;
+import com.godeltech.currencyexchange.exception.EntityAlreadyExistsException;
 import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.repository.CurrencyRepository;
@@ -30,7 +30,7 @@ public class CurrencyService {
   public CurrencyDto addCurrency(String currencyCode) {
 
     if (existsByCurrencyCode(currencyCode)) {
-      throw new CurrencyAlreadyExistsException("Currency with this code already exists");
+      throw new EntityAlreadyExistsException("Currency with this code already exists");
     }
 
     final var currency = Currency.builder().currencyCode(currencyCode).build();
