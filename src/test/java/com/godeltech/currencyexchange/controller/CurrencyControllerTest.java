@@ -1,7 +1,7 @@
 package com.godeltech.currencyexchange.controller;
 
 import static org.hamcrest.Matchers.hasItems;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,7 +11,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.godeltech.currencyexchange.JsonFormatter;
 import com.godeltech.currencyexchange.dto.CurrencyDto;
+import com.godeltech.currencyexchange.exception.CurrencyAlreadyExistsException;
 import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.service.CurrencyService;
@@ -34,6 +36,8 @@ class CurrencyControllerTest {
 
   @MockitoBean private CurrencyMapper currencyMapper;
 
+  public static final String CURRENCIES_ENDPOINT = "/api/v1/currencies";
+
   private Currency eur;
   private Currency usd;
   private CurrencyDto eurDto;
@@ -54,16 +58,21 @@ class CurrencyControllerTest {
   void getCurrencies() {
 
     when(currencyService.getAllCurrencies()).thenReturn(List.of(usd, eur));
-
     when(currencyMapper.currenciesToCurrencyDtos(List.of(usd, eur)))
         .thenReturn(List.of(usdDto, eurDto));
 
-    mockMvc
-        .perform(get("/api/v1/currencies").contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$[0].currencyCode").value("USD"))
-        .andExpect(jsonPath("$[1].currencyCode").value("EUR"));
+    final var result =
+        mockMvc
+            .perform(get(CURRENCIES_ENDPOINT).contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn();
+
+    final var responseBody = result.getResponse().getContentAsString();
+    final var expectedBody =
+        JsonFormatter.transformJsonFormat("src/test/resources/expected_currencies.json");
+
+    assertEquals(expectedBody, responseBody);
   }
 
   @Test
@@ -71,15 +80,13 @@ class CurrencyControllerTest {
   void addCurrency_success() {
 
     when(currencyService.existsByCurrencyCode(currencyCode)).thenReturn(false);
-    when(currencyService.addCurrency(usd)).thenReturn(usd);
+    when(currencyService.addCurrency(currencyCode)).thenReturn(usdDto);
     when(currencyMapper.currencyToCurrencyDto(usd)).thenReturn(usdDto);
 
     mockMvc
-        .perform(post("/api/v1/currencies").param("currency", currencyCode))
+        .perform(post(CURRENCIES_ENDPOINT).param("currency", currencyCode))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.currencyCode").value("USD"));
-
-    verify(currencyService, times(1)).addCurrency(usd);
   }
 
   @Test
@@ -87,11 +94,11 @@ class CurrencyControllerTest {
   void addCurrency_invalidCurrencyCode() {
 
     mockMvc
-        .perform(post("/api/v1/currencies").param("currency", "us"))
+        .perform(post(CURRENCIES_ENDPOINT).param("currency", "us"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$[0]").value("Currency code must be a 3-letter uppercase string"));
 
-    verify(currencyService, times(0)).addCurrency(any(Currency.class));
+    verify(currencyService, times(0)).addCurrency(currencyCode);
   }
 
   @Test
@@ -99,7 +106,7 @@ class CurrencyControllerTest {
   void addCurrency_emptyCurrencyCode() {
 
     mockMvc
-        .perform(post("/api/v1/currencies").param("currency", ""))
+        .perform(post(CURRENCIES_ENDPOINT).param("currency", ""))
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$")
@@ -108,21 +115,22 @@ class CurrencyControllerTest {
                         "Currency code must not be blank",
                         "Currency code must be a 3-letter uppercase string")));
 
-    verify(currencyService, times(0)).addCurrency(any(Currency.class));
+    verify(currencyService, times(0)).addCurrency(currencyCode);
   }
 
   @Test
   @SneakyThrows
   void addCurrency_currencyAlreadyExists() {
 
-    when(currencyService.existsByCurrencyCode(currencyCode)).thenReturn(true);
-    when(currencyMapper.currencyToCurrencyDto(usd)).thenReturn(usdDto);
+    final var exception =
+        new CurrencyAlreadyExistsException("Currency with this code already exists");
+
+    when(currencyService.addCurrency(currencyCode)).thenThrow(exception);
 
     mockMvc
-        .perform(post("/api/v1/currencies").param("currency", currencyCode))
-        .andExpect(status().isBadRequest())
+        .perform(post(CURRENCIES_ENDPOINT).param("currency", currencyCode))
+        .andExpect(status().isConflict())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.message").value("Currency with this code already exists"));
-    verify(currencyService, times(0)).addCurrency(any(Currency.class));
   }
 }

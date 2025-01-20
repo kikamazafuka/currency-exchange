@@ -46,7 +46,7 @@ public class CurrencyController {
 
   @Operation(summary = "Add new currency to database")
   @PostMapping
-  public ResponseEntity<?> addCurrency(
+  public ResponseEntity<CurrencyDto> addCurrency(
       @RequestParam
           @NotBlank(message = "{currency.code.notBlank}")
           @Pattern(regexp = "^[A-Z]{3}$", message = "{currency.code.pattern}")
@@ -54,16 +54,9 @@ public class CurrencyController {
 
     log.info("CurrencyController::Adding new currency to database");
 
-    if (currencyService.existsByCurrencyCode(currency)) {
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .contentType(MediaType.APPLICATION_JSON)
-          .body("{\"message\": \"Currency with this code already exists\"}");
-    }
-
-    final var currencyObject = Currency.builder().currencyCode(currency).build();
-    currencyService.addCurrency(currencyObject);
+    final var currencyDto = currencyService.addCurrency(currency);
 
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(currencyMapper.currencyToCurrencyDto(currencyObject));
+        .body(currencyDto);
   }
 }

@@ -2,6 +2,7 @@ package com.godeltech.currencyexchange.exception;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(ConstraintViolationException.class)
-  public ResponseEntity<?> handleValidationExceptions(ConstraintViolationException ex) {
+  public ResponseEntity<List<String>> handleValidationExceptions(ConstraintViolationException ex) {
 
     final var errorMessages =
         ex.getConstraintViolations().stream().map(ConstraintViolation::getMessage).toList();
@@ -22,7 +23,17 @@ public class GlobalExceptionHandler {
     log.error("Validation error: {}", ex.getMessage());
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(errorMessages);
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(errorMessages);
+  }
+
+  @ExceptionHandler(CurrencyAlreadyExistsException.class)
+  public ResponseEntity<String> handleCurrencyAlreadyExists(CurrencyAlreadyExistsException ex) {
+
+    log.error("Currency already exists");
+
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body("{\"message\": \"" + ex.getMessage() + "\"}");
   }
 }

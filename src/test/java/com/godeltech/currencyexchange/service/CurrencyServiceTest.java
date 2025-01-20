@@ -3,11 +3,13 @@ package com.godeltech.currencyexchange.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.godeltech.currencyexchange.dto.CurrencyDto;
+import com.godeltech.currencyexchange.exception.CurrencyAlreadyExistsException;
+import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.repository.CurrencyRepository;
 import java.util.List;
@@ -22,17 +24,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class CurrencyServiceTest {
 
   @Mock private CurrencyRepository currencyRepository;
+  @Mock private CurrencyMapper currencyMapper;
 
   @InjectMocks private CurrencyService currencyService;
 
   private Currency eur;
   private Currency usd;
+  private CurrencyDto usdDto;
   private String currencyCode;
 
   @BeforeEach
   public void setup() {
     eur = Currency.builder().id(1L).currencyCode("EUR").build();
     usd = Currency.builder().id(2L).currencyCode("USD").build();
+    usdDto = new CurrencyDto("USD");
     currencyCode = "USD";
   }
 
@@ -43,19 +48,37 @@ class CurrencyServiceTest {
 
     final var currencies = currencyService.getAllCurrencies();
 
-    assertThat(currencies).isNotNull();
-    assertThat(currencies).containsExactly(usd, eur);
+    assertThat(currencies).isNotNull().containsExactly(usd, eur);
   }
 
   @Test
-  void addCurrency() {
-    when(currencyRepository.save(usd)).thenReturn(usd);
+  public void addCurrency() {
 
-    final var usdActual = currencyService.addCurrency(usd);
-    final var usdExpected = Currency.builder().id(2L).currencyCode("USD").build();
+    final var currencyCode = "USD";
 
-    assertThat(usdExpected).isNotNull();
-    assertEquals(usdExpected, usdActual);
+    final var mockCurrency = new Currency(null, currencyCode);
+
+    when(currencyRepository.existsByCurrencyCode(currencyCode)).thenReturn(false);
+    when(currencyRepository.save(mockCurrency)).thenReturn(mockCurrency);
+    when(currencyMapper.currencyToCurrencyDto(mockCurrency)).thenReturn(usdDto);
+
+    final var actualDto = currencyService.addCurrency(currencyCode);
+
+    assertEquals(usdDto, actualDto);
+  }
+
+  @Test
+  public void testAddCurrency_throwsCurrencyAlreadyExistsException() {
+
+    when(currencyRepository.existsByCurrencyCode(currencyCode)).thenReturn(true);
+
+    final var exception =
+        assertThrows(
+            CurrencyAlreadyExistsException.class,
+            () -> currencyService.addCurrency(currencyCode),
+            "Expected addCurrency() to throw CurrencyAlreadyExistsException");
+
+    assertEquals("Currency with this code already exists", exception.getMessage());
   }
 
   @Test
@@ -64,8 +87,8 @@ class CurrencyServiceTest {
     when(currencyRepository.existsByCurrencyCode(currencyCode)).thenReturn(true);
 
     final var result = currencyService.existsByCurrencyCode(currencyCode);
+
     assertTrue(result);
-    verify(currencyRepository, times(1)).existsByCurrencyCode(currencyCode);
   }
 
   @Test
@@ -74,7 +97,7 @@ class CurrencyServiceTest {
     when(currencyRepository.existsByCurrencyCode(currencyCode)).thenReturn(false);
 
     final var result = currencyService.existsByCurrencyCode(currencyCode);
+
     assertFalse(result);
-    verify(currencyRepository, times(1)).existsByCurrencyCode(currencyCode);
   }
 }
