@@ -19,9 +19,16 @@ configurations {
     compileOnly {
         extendsFrom annotationProcessor
     }
+    testCompileOnly.extendsFrom compileOnly
+    testAnnotationProcessor.extendsFrom annotationProcessor
     integrationTestImplementation.extendsFrom testImplementation
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
     integrationTestCompileOnly.extendsFrom compileOnly
+    integrationTestAnnotationProcessor.extendsFrom annotationProcessor
+    utilsImplementation.extendsFrom testImplementation
+    utilsRuntimeOnly.extendsFrom testRuntimeOnly
+    utilsCompileOnly.extendsFrom compileOnly
+    utilsAnnotationProcessor.extendsFrom annotationProcessor
 }
 
 repositories {
@@ -109,11 +116,26 @@ sourceSets {
         java.srcDir 'src/main/java'
         resources.srcDir 'src/main/resources'
     }
+    utils {
+        java.srcDir file('src/utils/java')
+        resources.srcDir file('src/utils/resources')
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+
+    }
+    test {
+        java.srcDir 'src/test/java'
+        resources.srcDir 'src/test/resources'
+        compileClasspath += sourceSets.utils.output
+        runtimeClasspath += sourceSets.utils.output
+    }
     integrationTest {
         java.srcDir file('src/integrationTest/java')
         resources.srcDir file('src/integrationTest/resources')
         compileClasspath += sourceSets.main.output
+        compileClasspath += sourceSets.utils.output
         runtimeClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.utils.output
     }
 }
 

@@ -47,8 +47,8 @@ class CurrencyMapperTest {
 
     final var expectedCurrencyDtos = List.of(new CurrencyDto("USD"), new CurrencyDto("EUR"));
 
-    final var currencyDTOs = currencyMapper.currenciesToCurrencyDtos(currencies);
+    final var currencyDtos = currencyMapper.currenciesToCurrencyDtos(currencies);
 
-    assertThat(currencyDTOs).isEqualTo(expectedCurrencyDtos);
+    assertThat(currencyDtos).isEqualTo(expectedCurrencyDtos);
   }
 }

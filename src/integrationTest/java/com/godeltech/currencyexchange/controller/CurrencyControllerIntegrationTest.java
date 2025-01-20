@@ -1,9 +1,10 @@
 package com.godeltech.currencyexchange.controller;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.godeltech.currencyexchange.controller.utils.JsonFormatter;
+import com.godeltech.currencyexchange.JsonFormatter;
 import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.repository.CurrencyRepository;
 import io.restassured.RestAssured;
@@ -27,10 +28,14 @@ public class CurrencyControllerIntegrationTest {
 
   private static final PostgreSQLContainer<?> postgres =
       new PostgreSQLContainer<>("postgres:16-alpine");
+  private static final String BASE_URL = "http://localhost:";
+  private static final String CURRENCIES_ENDPOINT = "/api/v1/currencies";
+  private Currency eur;
 
   @BeforeAll
   static void beforeAll() {
     postgres.start();
+    RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
   }
 
   @AfterAll
@@ -51,6 +56,7 @@ public class CurrencyControllerIntegrationTest {
   void setUp() {
     RestAssured.reset();
     currencyRepository.deleteAll();
+    eur = Currency.builder().currencyCode("EUR").build();
   }
 
   @Test
@@ -63,10 +69,10 @@ public class CurrencyControllerIntegrationTest {
 
     final var responseBody =
         RestAssured.given()
-            .baseUri("http://localhost:" + port)
+            .baseUri(BASE_URL + port)
             .contentType(ContentType.JSON)
             .when()
-            .get("/api/v1/currencies")
+            .get(CURRENCIES_ENDPOINT)
             .then()
             .statusCode(200)
             .body("currencyCode", hasItems("USD", "EUR"))
@@ -78,5 +84,38 @@ public class CurrencyControllerIntegrationTest {
         JsonFormatter.transformJsonFormat("src/integrationTest/resources/expected_currencies.json");
 
     assertEquals(expectedBody, responseBody);
+  }
+
+  @Test
+  void shouldAddCurrency() {
+
+    final var validCurrency = "USD";
+
+    RestAssured.given()
+        .baseUri(BASE_URL + port)
+        .contentType(ContentType.JSON)
+        .queryParam("currency", validCurrency)
+        .when()
+        .post(CURRENCIES_ENDPOINT)
+        .then()
+        .statusCode(201)
+        .body("currencyCode", equalTo(validCurrency));
+  }
+
+  @Test
+  void shouldAddCurrency_currencyExists() {
+
+    final var validCurrency = "EUR";
+    currencyRepository.save(eur);
+
+    RestAssured.given()
+        .baseUri(BASE_URL + port)
+        .contentType(ContentType.JSON)
+        .queryParam("currency", validCurrency)
+        .when()
+        .post(CURRENCIES_ENDPOINT)
+        .then()
+        .statusCode(409)
+        .body("message", equalTo("Currency with this code already exists"));
   }
 }
