@@ -1,6 +1,8 @@
 package com.godeltech.currencyexchange.service;
 
 import com.godeltech.currencyexchange.exception.NotFoundException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +38,9 @@ public final class ExchangeRateCacheService {
     Map<String, Double> calculatedAmounts = new HashMap<>(exchangeRates);
 
     for (final var entry : calculatedAmounts.entrySet()) {
-      entry.setValue(entry.getValue() * amount);
+      final var calculatedValue = entry.getValue() * amount;
+      final var roundedValue = new BigDecimal(calculatedValue).setScale(6, RoundingMode.HALF_UP);
+      entry.setValue(roundedValue.doubleValue());
     }
     return calculatedAmounts;
   }
