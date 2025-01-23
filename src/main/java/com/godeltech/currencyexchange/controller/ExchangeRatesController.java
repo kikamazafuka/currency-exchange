@@ -4,6 +4,7 @@ import com.godeltech.currencyexchange.service.ExchangeRateCacheService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,8 @@ public class ExchangeRatesController {
           @Pattern(regexp = "^[A-Z]{3}$", message = "{currency.code.pattern}")
           String currency,
       @RequestParam
-          @DecimalMin(value = "0.0", message = "{exchangerate.amount.decimal}")
+          @NotNull(message = "{exchangerate.amount.notnull}")
+          @DecimalMin(value = "1.0", message = "{exchangerate.amount.decimal}")
           Double amount) {
 
     log.info("CurrencyController::Getting latest exchange rates from cache");

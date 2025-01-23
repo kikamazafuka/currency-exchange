@@ -45,26 +45,14 @@ class ExchangeRateCacheServiceTest {
   @Test
   void getCurrencyCacheExchangeRates_exchangeRatesNotFound() {
 
-    final var currencyCode = "BYN";
+    final var currencyWithoutExchangeRates = "BYN";
 
-    when(exchangeRateCacheService.getExchangeRates(currencyCode)).thenReturn(null);
+    when(exchangeRateCacheService.getExchangeRates(currencyWithoutExchangeRates)).thenReturn(null);
 
     assertThrows(
         NotFoundException.class,
-        () -> exchangeRateCacheService.getCurrencyCacheExchangeRates(currencyCode, 100.0));
-  }
-
-  @Test
-  void getCurrencyCacheExchangeRates_amountIsZero() {
-
-    final var amount = 0.0;
-    final var exchangeRates = Map.of("USD", 1.0417, "CAD", 1.2600, "GBP", 0.7191);
-
-    when(exchangeRateCacheService.getExchangeRates(currencyCode)).thenReturn(exchangeRates);
-
-    final var actualRates =
-        exchangeRateCacheService.getCurrencyCacheExchangeRates(currencyCode, amount);
-
-    assertEquals(exchangeRates, actualRates);
+        () ->
+            exchangeRateCacheService.getCurrencyCacheExchangeRates(
+                currencyWithoutExchangeRates, 100.0));
   }
 }

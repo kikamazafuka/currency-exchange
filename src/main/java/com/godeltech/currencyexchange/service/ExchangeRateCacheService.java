@@ -29,7 +29,7 @@ public final class ExchangeRateCacheService {
       throw new NotFoundException("Exchange rate for " + currencyCode + " not found.");
     }
 
-    return amount == 0 ? exchangeRates : calculateAmount(exchangeRates, amount);
+    return calculateAmount(exchangeRates, amount);
   }
 
   private static Map<String, Double> calculateAmount(
@@ -39,7 +39,8 @@ public final class ExchangeRateCacheService {
 
     for (final var entry : calculatedAmounts.entrySet()) {
       final var calculatedValue = entry.getValue() * amount;
-      final var roundedValue = new BigDecimal(calculatedValue).setScale(6, RoundingMode.HALF_UP);
+      final var roundedValue =
+          new BigDecimal(String.valueOf(calculatedValue)).setScale(6, RoundingMode.HALF_UP);
       entry.setValue(roundedValue.doubleValue());
     }
     return calculatedAmounts;

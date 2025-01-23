@@ -104,27 +104,17 @@ class ExchangeRatesControllerTest {
     when(exchangeRateCacheService.getCurrencyCacheExchangeRates(currencyCode, amount))
         .thenReturn(Map.of("EUR", 1.2, "GBP", 0.8));
 
-    final var result =
-        mockMvc
-            .perform(
-                get(CURRENCIES_ENDPOINT + EXCHANGE_RATES_ENDPOINT)
-                    .param("currency", currencyCode)
-                    .param("amount", String.valueOf(amount))
-                    .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andReturn();
+    mockMvc
+        .perform(
+            get(CURRENCIES_ENDPOINT + EXCHANGE_RATES_ENDPOINT)
+                .param("currency", currencyCode)
+                .param("amount", String.valueOf(amount))
+                .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$").value(hasItems("The amount should be greater or equal to 1.0")));
 
-    final var responseBody = result.getResponse().getContentAsString();
-    final var expectedBody =
-        new String(
-            Files.readAllBytes(Paths.get("src/test/resources/expected_body_amount_zero.json")));
-    final var objectMapper = new ObjectMapper();
-    final var expectedJson = objectMapper.readTree(expectedBody);
-    final var responseJson = objectMapper.readTree(responseBody);
-
-    assertEquals(expectedJson, responseJson);
-
-    verify(exchangeRateCacheService).getCurrencyCacheExchangeRates(currencyCode, amount);
+    verify(exchangeRateCacheService, times(0)).getCurrencyCacheExchangeRates(currencyCode, amount);
   }
 
   @Test
