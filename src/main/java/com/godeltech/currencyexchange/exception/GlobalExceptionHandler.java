@@ -30,9 +30,19 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(EntityAlreadyExistsException.class)
   public ResponseEntity<String> handleCurrencyAlreadyExists(EntityAlreadyExistsException ex) {
 
-    log.error("Currency already exists");
+    log.error("Entity already exists");
 
     return ResponseEntity.status(HttpStatus.CONFLICT)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body("{\"message\": \"" + ex.getMessage() + "\"}");
+  }
+
+  @ExceptionHandler(NotFoundException.class)
+  public ResponseEntity<String> handleCurrencyCacheExchangeRates(NotFoundException ex) {
+
+    log.error("Requested data was not found");
+
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
         .contentType(MediaType.APPLICATION_JSON)
         .body("{\"message\": \"" + ex.getMessage() + "\"}");
   }

@@ -1,10 +1,9 @@
 package com.godeltech.currencyexchange;
 
-import lombok.SneakyThrows;
-import lombok.experimental.UtilityClass;
-
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import lombok.SneakyThrows;
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class JsonFormatter {

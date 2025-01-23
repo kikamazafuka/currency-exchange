@@ -91,7 +91,9 @@ jacocoTestReport {
 
 	classDirectories.setFrom(
 			classDirectories.files.collect { file ->
-				fileTree(dir: file, exclude: '**/mapper/*')
+				fileTree(dir: file, exclude: ['**/mapper/*',
+                        'com/godeltech/currencyexchange/CurrencyExchangeApplication.class'
+                ])
 			}
 	)
 }
