@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -44,6 +45,7 @@ class ExchangeRatesControllerTest {
 
   @Test
   @SneakyThrows
+  @WithMockUser
   void getExchangeRate() {
 
     final var amount = 100.0;
@@ -76,6 +78,7 @@ class ExchangeRatesControllerTest {
 
   @Test
   @SneakyThrows
+  @WithMockUser
   void getExchangeRate_emptyCurrencyCode() {
 
     final var amount = 100.0;
@@ -97,6 +100,7 @@ class ExchangeRatesControllerTest {
   }
 
   @Test
+  @WithMockUser
   void getExchangeRate_amountZero() throws Exception {
 
     final var amount = 0.0;
@@ -119,14 +123,14 @@ class ExchangeRatesControllerTest {
 
   @Test
   @SneakyThrows
+  @WithMockUser
   void getCurrencyCacheExchangeRates_exchangeRatesNotFound() {
 
     final var notValidCurrencyCode = "BYN";
     final var amount = 1.0;
 
     final var exception =
-        new NotFoundException(
-            "Exchange rate for " + notValidCurrencyCode + " not found.");
+        new NotFoundException("Exchange rate for " + notValidCurrencyCode + " not found.");
 
     when(exchangeRateCacheService.getCurrencyCacheExchangeRates(notValidCurrencyCode, amount))
         .thenThrow(exception);
@@ -142,5 +146,7 @@ class ExchangeRatesControllerTest {
         .andExpect(
             jsonPath("$.message")
                 .value("Exchange rate for " + notValidCurrencyCode + " not found."));
+
+    verify(exchangeRateCacheService).getCurrencyCacheExchangeRates(notValidCurrencyCode, amount);
   }
 }
