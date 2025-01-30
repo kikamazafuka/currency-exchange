@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -55,6 +57,7 @@ class CurrencyControllerTest {
 
   @Test
   @SneakyThrows
+  @WithMockUser
   void getCurrencies() {
 
     when(currencyService.getAllCurrencies()).thenReturn(List.of(usd, eur));
@@ -73,10 +76,13 @@ class CurrencyControllerTest {
         JsonFormatter.transformJsonFormat("src/test/resources/expected_currencies.json");
 
     assertEquals(expectedBody, responseBody);
+
+    verify(currencyService).getAllCurrencies();
   }
 
   @Test
   @SneakyThrows
+  @WithMockUser
   void addCurrency_success() {
 
     when(currencyService.existsByCurrencyCode(currencyCode)).thenReturn(false);
@@ -85,7 +91,7 @@ class CurrencyControllerTest {
 
     final var result =
         mockMvc
-            .perform(post(CURRENCIES_ENDPOINT).param("currency", currencyCode))
+            .perform(post(CURRENCIES_ENDPOINT).param("currency", currencyCode).with(csrf()))
             .andExpect(status().isCreated())
             .andReturn();
 
@@ -100,10 +106,11 @@ class CurrencyControllerTest {
 
   @Test
   @SneakyThrows
+  @WithMockUser
   void addCurrency_invalidCurrencyCode() {
 
     mockMvc
-        .perform(post(CURRENCIES_ENDPOINT).param("currency", "us"))
+        .perform(post(CURRENCIES_ENDPOINT).param("currency", "us").with(csrf()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$[0]").value("Currency code must be a 3-letter uppercase string"));
 
@@ -112,10 +119,11 @@ class CurrencyControllerTest {
 
   @Test
   @SneakyThrows
+  @WithMockUser
   void addCurrency_emptyCurrencyCode() {
 
     mockMvc
-        .perform(post(CURRENCIES_ENDPOINT).param("currency", ""))
+        .perform(post(CURRENCIES_ENDPOINT).param("currency", "").with(csrf()))
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$")
@@ -129,6 +137,7 @@ class CurrencyControllerTest {
 
   @Test
   @SneakyThrows
+  @WithMockUser
   void addCurrency_currencyAlreadyExists() {
 
     final var exception =
@@ -137,7 +146,7 @@ class CurrencyControllerTest {
     when(currencyService.addCurrency(currencyCode)).thenThrow(exception);
 
     mockMvc
-        .perform(post(CURRENCIES_ENDPOINT).param("currency", currencyCode))
+        .perform(post(CURRENCIES_ENDPOINT).param("currency", currencyCode).with(csrf()))
         .andExpect(status().isConflict())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.message").value("Currency with this code already exists"));
