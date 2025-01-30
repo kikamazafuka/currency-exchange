@@ -2,7 +2,6 @@ package com.godeltech.currencyexchange.security;
 
 import com.godeltech.currencyexchange.model.Authority;
 import com.godeltech.currencyexchange.repository.CurrencyUserRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -10,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CurrencyUserService implements UserDetailsService {
@@ -22,7 +22,7 @@ public class CurrencyUserService implements UserDetailsService {
   }
 
   @Override
-  @Transactional
+  @Transactional(readOnly = true)
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
     return currencyUserRepository
         .findByUsername(username)

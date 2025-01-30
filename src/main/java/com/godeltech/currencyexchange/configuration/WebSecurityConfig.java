@@ -34,8 +34,6 @@ public class WebSecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-    System.out.println("SecurityFilterChain initialized");
-
     http.csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(
             authorize ->
