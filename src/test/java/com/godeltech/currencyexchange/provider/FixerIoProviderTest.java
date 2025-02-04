@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.godeltech.currencyexchange.service.ApiRequestLogService;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,8 @@ import org.springframework.web.client.RestTemplate;
 class FixerIoProviderTest {
 
   @Mock private RestTemplate restTemplate;
+
+  @Mock private ApiRequestLogService apiRequestLogService;
 
   @InjectMocks private FixerIoProvider fixerIoProvider;
 

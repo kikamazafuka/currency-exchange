@@ -1,6 +1,7 @@
 package com.godeltech.currencyexchange.provider;
 
-import java.util.Collections;
+import com.godeltech.currencyexchange.service.ApiRequestLogService;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +27,18 @@ public class FixerIoProvider implements ExchangeRateProvider {
 
   private final RestTemplate restTemplate;
 
+  private final ApiRequestLogService apiRequestLogService;
+
   @Autowired
-  public FixerIoProvider(RestTemplate restTemplate) {
+  public FixerIoProvider(RestTemplate restTemplate, ApiRequestLogService apiRequestLogService) {
     this.restTemplate = restTemplate;
+    this.apiRequestLogService = apiRequestLogService;
   }
 
   @Override
   public List<ExternalApiResponse> getExchangeRates() {
+
+    List<ExternalApiResponse> responseExchangeRates = new ArrayList<>();
 
     final var requestUrl = buildRequestUrl();
 
@@ -40,7 +46,10 @@ public class FixerIoProvider implements ExchangeRateProvider {
         restTemplate.exchange(requestUrl, HttpMethod.GET, null, ExternalApiResponse.class);
 
     if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
-      return List.of(responseEntity.getBody());
+
+      apiRequestLogService.updateExternalApiRequestLogs(responseEntity.getBody(), requestUrl);
+
+      responseExchangeRates.add(responseEntity.getBody());
     } else {
       log.error(
           "Failed to fetch {} exchange rates: {}",
@@ -48,7 +57,7 @@ public class FixerIoProvider implements ExchangeRateProvider {
           responseEntity.getStatusCode());
     }
 
-    return Collections.emptyList();
+    return responseExchangeRates;
   }
 
   private String buildRequestUrl() {

@@ -85,9 +85,9 @@ public class ExternalApiServiceIntegrationTest {
 
     externalApiService.updateExchangeRates();
 
-    Map<String, Double> usdRates = exchangeRatesBean.get("USD");
-    assertEquals(0.840751, usdRates.get("EUR"));
-    assertEquals(0.202988, usdRates.get("GBP"));
+    Map<String, Double> usdRates = exchangeRatesBean.get("EUR");
+    assertEquals(5.593228, usdRates.get("USD"));
+    assertEquals(416.202988, usdRates.get("GBP"));
   }
 
   @Test

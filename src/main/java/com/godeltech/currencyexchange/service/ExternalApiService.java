@@ -1,5 +1,6 @@
 package com.godeltech.currencyexchange.service;
 
+import com.godeltech.currencyexchange.exception.InvalidResponseException;
 import com.godeltech.currencyexchange.provider.ExchangeRateProvider;
 import com.godeltech.currencyexchange.provider.ExternalApiResponse;
 import jakarta.annotation.PostConstruct;
@@ -53,7 +54,7 @@ public class ExternalApiService {
             provider
                 .getExchangeRates()
                 .forEach(response -> createExchangeRatesFromResponse(response, bestRates));
-          } catch (RestClientException e) {
+          } catch (RestClientException | InvalidResponseException e) {
             log.error(
                 "Error getting exchange rates with {} API: {}",
                 provider.getProviderName(),
