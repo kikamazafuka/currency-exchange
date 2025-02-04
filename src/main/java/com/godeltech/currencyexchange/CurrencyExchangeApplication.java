@@ -12,7 +12,6 @@ public class CurrencyExchangeApplication {
 
   public static void main(String[] args) {
     SpringApplication.run(CurrencyExchangeApplication.class, args);
-
   }
 
   @Bean

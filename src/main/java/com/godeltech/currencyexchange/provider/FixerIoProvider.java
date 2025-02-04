@@ -1,16 +1,22 @@
 package com.godeltech.currencyexchange.provider;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @Slf4j
 public class FixerIoProvider implements ExchangeRateProvider {
+
+  @Value("${api.name.fixer}")
+  private String providerName;
 
   @Value("${api.key.fixer}")
   private String apiKey;
@@ -27,18 +33,32 @@ public class FixerIoProvider implements ExchangeRateProvider {
 
   @Override
   public List<ExternalApiResponse> getExchangeRates() {
-    final var requestUrl = apiUrl + "?" + "access_key" + "=" + apiKey;
 
-    ExternalApiResponse response = restTemplate.getForObject(requestUrl, ExternalApiResponse.class);
+    final var requestUrl = buildRequestUrl();
 
-    if (response != null) {
-      return List.of(response);
+    final var responseEntity =
+        restTemplate.exchange(requestUrl, HttpMethod.GET, null, ExternalApiResponse.class);
+
+    if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
+      return List.of(responseEntity.getBody());
+    } else {
+      log.error(
+          "Failed to fetch {} exchange rates: {}",
+          getProviderName(),
+          responseEntity.getStatusCode());
     }
-    throw new RuntimeException("Failed to fetch exchange rates from Fixer.io");
+
+    return Collections.emptyList();
+  }
+
+  private String buildRequestUrl() {
+    return UriComponentsBuilder.fromUriString(apiUrl + "/api/latest")
+        .queryParam("access_key", apiKey)
+        .toUriString();
   }
 
   @Override
   public String getProviderName() {
-    return "Fixer.io";
+    return providerName;
   }
 }

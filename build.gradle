@@ -21,10 +21,6 @@ configurations {
     }
     testCompileOnly.extendsFrom compileOnly
     testAnnotationProcessor.extendsFrom annotationProcessor
-    integrationTestImplementation.extendsFrom testImplementation
-    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
-    integrationTestCompileOnly.extendsFrom compileOnly
-    integrationTestAnnotationProcessor.extendsFrom annotationProcessor
     utilsImplementation.extendsFrom testImplementation
     utilsRuntimeOnly.extendsFrom testRuntimeOnly
     utilsCompileOnly.extendsFrom compileOnly
@@ -57,6 +53,8 @@ dependencies {
     testImplementation "org.testcontainers:postgresql:1.20.4"
     testImplementation 'io.rest-assured:rest-assured'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.wiremock.integrations:wiremock-spring-boot:3.6.0'
+    testImplementation "org.wiremock:wiremock-jetty12:3.10.0"
 }
 
 tasks.named('test') {
@@ -132,25 +130,8 @@ sourceSets {
         compileClasspath += sourceSets.utils.output
         runtimeClasspath += sourceSets.utils.output
     }
-    integrationTest {
-        java.srcDir file('src/integrationTest/java')
-        resources.srcDir file('src/integrationTest/resources')
-        compileClasspath += sourceSets.main.output
-        compileClasspath += sourceSets.utils.output
-        runtimeClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.utils.output
-    }
 }
 
-tasks.register('integrationTest', Test) {
-    description = 'Runs integration tests.'
-    group = 'verification'
-
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    useJUnitPlatform()
-}
-
-check.dependsOn integrationTest
+check.dependsOn test
 
 tasks.withType(Copy).all { duplicatesStrategy 'exclude' }

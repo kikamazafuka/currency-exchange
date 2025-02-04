@@ -1,4 +1,4 @@
-package com.godeltech.currencyexchange.controller;
+package com.godeltech.currencyexchange.integration;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,11 +56,12 @@ public class ExchangeRatesControllerIntegrationTest {
   @BeforeEach
   void setUp() {
     RestAssured.reset();
+    exchangeRates.clear();
   }
 
   @Test
   @SneakyThrows
-  void shouldGetCurrencyExchangeRates() {
+  void getCurrencyExchangeRates() {
     Map<String, Double> eurRates = new HashMap<>();
     eurRates.put("USD", 2.0417);
     eurRates.put("CAD", 1.2600);
@@ -88,7 +89,7 @@ public class ExchangeRatesControllerIntegrationTest {
 
     final var expectedBody =
         new String(
-            Files.readAllBytes(Paths.get("src/integrationTest/resources/expected_body.json")));
+            Files.readAllBytes(Paths.get("src/test/resources/expected_body_int.json")));
     final var objectMapper = new ObjectMapper();
     final var expectedJson = objectMapper.readTree(expectedBody);
     final var responseJson = objectMapper.readTree(responseBody);
@@ -97,7 +98,7 @@ public class ExchangeRatesControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetCurrencyExchangeRates_currencyNotFound() {
+  void getCurrencyExchangeRates_currencyNotFound() {
 
     final var currencyCode = "BYN";
     final var amount = 100.0;
