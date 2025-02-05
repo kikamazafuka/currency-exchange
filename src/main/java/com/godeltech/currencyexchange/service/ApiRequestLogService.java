@@ -35,17 +35,17 @@ public class ApiRequestLogService {
     Map<String, Double> rates = response.getRates();
 
     rates.forEach(
-        (currency, rate) -> {
-          ApiRequestLog log =
-              ApiRequestLog.builder()
-                  .timestamp(LocalDateTime.now())
-                  .url(url)
-                  .requestCurrency(baseCurrency)
-                  .targetCurrency(currency)
-                  .currencyRate(rate)
-                  .build();
+        (currency, rate) ->
+          apiRequestLogRepository.save(getApiRequestLog(url, currency, rate, baseCurrency)));
+  }
 
-          apiRequestLogRepository.save(log);
-        });
+  private static ApiRequestLog getApiRequestLog(String url, String currency, Double rate, String baseCurrency) {
+      return ApiRequestLog.builder()
+          .timestamp(LocalDateTime.now())
+          .url(url)
+          .requestCurrency(baseCurrency)
+          .targetCurrency(currency)
+          .currencyRate(rate)
+          .build();
   }
 }
