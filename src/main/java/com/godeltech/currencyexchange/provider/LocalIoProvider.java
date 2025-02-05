@@ -1,5 +1,8 @@
 package com.godeltech.currencyexchange.provider;
 
+import com.godeltech.currencyexchange.mapper.ApiResponseMapper;
+import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
+import com.godeltech.currencyexchange.provider.response.LocalApiResponse;
 import com.godeltech.currencyexchange.service.ApiRequestLogService;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,10 +33,16 @@ public class LocalIoProvider implements ExchangeRateProvider {
 
   private final ApiRequestLogService apiRequestLogService;
 
+  private final ApiResponseMapper apiResponseMapper;
+
   @Autowired
-  public LocalIoProvider(RestTemplate restTemplate, ApiRequestLogService apiRequestLogService) {
+  public LocalIoProvider(
+      RestTemplate restTemplate,
+      ApiRequestLogService apiRequestLogService,
+      ApiResponseMapper apiResponseMapper) {
     this.restTemplate = restTemplate;
     this.apiRequestLogService = apiRequestLogService;
+    this.apiResponseMapper = apiResponseMapper;
   }
 
   @Override
@@ -48,15 +57,19 @@ public class LocalIoProvider implements ExchangeRateProvider {
             requestUrl,
             HttpMethod.GET,
             null,
-            new ParameterizedTypeReference<List<ExternalApiResponse>>() {});
+            new ParameterizedTypeReference<List<LocalApiResponse>>() {});
 
     if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
 
       responseEntity
           .getBody()
-          .forEach(body -> apiRequestLogService.updateExternalApiRequestLogs(body, requestUrl));
+          .forEach(
+              body ->
+                  apiRequestLogService.updateExternalApiRequestLogs(
+                      apiResponseMapper.toExternalApiResponse(body), requestUrl));
 
-      responseExchangeRates.addAll(responseEntity.getBody());
+      responseExchangeRates.addAll(
+          apiResponseMapper.toExternalApiResponseList(responseEntity.getBody()));
 
     } else {
       log.error(

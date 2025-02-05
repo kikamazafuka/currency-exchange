@@ -2,7 +2,7 @@ package com.godeltech.currencyexchange.service;
 
 import com.godeltech.currencyexchange.exception.InvalidResponseException;
 import com.godeltech.currencyexchange.model.ApiRequestLog;
-import com.godeltech.currencyexchange.provider.ExternalApiResponse;
+import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
 import com.godeltech.currencyexchange.repository.ApiRequestLogRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -36,16 +36,17 @@ public class ApiRequestLogService {
 
     rates.forEach(
         (currency, rate) ->
-          apiRequestLogRepository.save(getApiRequestLog(url, currency, rate, baseCurrency)));
+            apiRequestLogRepository.save(getApiRequestLog(url, currency, rate, baseCurrency)));
   }
 
-  private static ApiRequestLog getApiRequestLog(String url, String currency, Double rate, String baseCurrency) {
-      return ApiRequestLog.builder()
-          .timestamp(LocalDateTime.now())
-          .url(url)
-          .requestCurrency(baseCurrency)
-          .targetCurrency(currency)
-          .currencyRate(rate)
-          .build();
+  private static ApiRequestLog getApiRequestLog(
+      String url, String currency, Double rate, String baseCurrency) {
+    return ApiRequestLog.builder()
+        .timestamp(LocalDateTime.now())
+        .url(url)
+        .requestCurrency(baseCurrency)
+        .targetCurrency(currency)
+        .currencyRate(rate)
+        .build();
   }
 }

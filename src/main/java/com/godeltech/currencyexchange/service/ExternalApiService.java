@@ -2,7 +2,7 @@ package com.godeltech.currencyexchange.service;
 
 import com.godeltech.currencyexchange.exception.InvalidResponseException;
 import com.godeltech.currencyexchange.provider.ExchangeRateProvider;
-import com.godeltech.currencyexchange.provider.ExternalApiResponse;
+import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
@@ -18,14 +18,14 @@ import org.springframework.web.client.RestClientException;
 @Slf4j
 public class ExternalApiService {
 
-  private final Map<String, Map<String, Double>> exchangeRatesBean;
+  private final Map<String, Map<String, Double>> exchangeRates;
 
   private final List<ExchangeRateProvider> providers;
 
   @Autowired
   public ExternalApiService(
-      Map<String, Map<String, Double>> exchangeRatesBean, List<ExchangeRateProvider> providers) {
-    this.exchangeRatesBean = exchangeRatesBean;
+      Map<String, Map<String, Double>> exchangeRates, List<ExchangeRateProvider> providers) {
+    this.exchangeRates = exchangeRates;
     this.providers = providers;
   }
 
@@ -40,7 +40,7 @@ public class ExternalApiService {
   }
 
   private void updateCacheWithBestRates(Map<String, Map<String, Double>> bestRates) {
-    exchangeRatesBean.putAll(bestRates);
+    exchangeRates.putAll(bestRates);
   }
 
   private Map<String, Map<String, Double>> getBestRatesFromProviders() {

@@ -1,5 +1,8 @@
 package com.godeltech.currencyexchange.provider;
 
+import com.godeltech.currencyexchange.mapper.ApiResponseMapper;
+import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
+import com.godeltech.currencyexchange.provider.response.FixerIoApiResponse;
 import com.godeltech.currencyexchange.service.ApiRequestLogService;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,10 +32,16 @@ public class FixerIoProvider implements ExchangeRateProvider {
 
   private final ApiRequestLogService apiRequestLogService;
 
+  private final ApiResponseMapper apiResponseMapper;
+
   @Autowired
-  public FixerIoProvider(RestTemplate restTemplate, ApiRequestLogService apiRequestLogService) {
+  public FixerIoProvider(
+      RestTemplate restTemplate,
+      ApiRequestLogService apiRequestLogService,
+      ApiResponseMapper apiResponseMapper) {
     this.restTemplate = restTemplate;
     this.apiRequestLogService = apiRequestLogService;
+    this.apiResponseMapper = apiResponseMapper;
   }
 
   @Override
@@ -43,13 +52,16 @@ public class FixerIoProvider implements ExchangeRateProvider {
     final var requestUrl = buildRequestUrl();
 
     final var responseEntity =
-        restTemplate.exchange(requestUrl, HttpMethod.GET, null, ExternalApiResponse.class);
+        restTemplate.exchange(requestUrl, HttpMethod.GET, null, FixerIoApiResponse.class);
 
     if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
 
-      apiRequestLogService.updateExternalApiRequestLogs(responseEntity.getBody(), requestUrl);
+      final var externalApiResponse =
+          apiResponseMapper.toExternalApiResponse(responseEntity.getBody());
 
-      responseExchangeRates.add(responseEntity.getBody());
+      apiRequestLogService.updateExternalApiRequestLogs(externalApiResponse, requestUrl);
+
+      responseExchangeRates.add(externalApiResponse);
     } else {
       log.error(
           "Failed to fetch {} exchange rates: {}",

@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.godeltech.currencyexchange.provider.ExchangeRateProvider;
-import com.godeltech.currencyexchange.provider.ExternalApiResponse;
+import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;

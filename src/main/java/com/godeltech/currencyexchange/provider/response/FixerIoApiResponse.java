@@ -1,4 +1,4 @@
-package com.godeltech.currencyexchange.provider;
+package com.godeltech.currencyexchange.provider.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ExternalApiResponse {
+public class FixerIoApiResponse {
   private String base;
   private String date;
   private Map<String, Double> rates;
