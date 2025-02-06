@@ -11,20 +11,20 @@ import org.springframework.stereotype.Service;
 @Service
 public final class ExchangeRateCacheService {
 
-  private final Map<String, Map<String, Double>> exchangeRatesBean;
+  private final Map<String, Map<String, Double>> exchangeRates;
 
   @Autowired
   public ExchangeRateCacheService(Map<String, Map<String, Double>> exchangeRatesBean) {
-    this.exchangeRatesBean = exchangeRatesBean;
+    this.exchangeRates = exchangeRatesBean;
   }
 
   public Map<String, Double> getExchangeRates(String baseCurrency) {
-    return exchangeRatesBean.get(baseCurrency);
+    return exchangeRates.get(baseCurrency);
   }
 
   public Map<String, Double> getCurrencyCacheExchangeRates(String currencyCode, Double amount) {
 
-    final var exchangeRates = exchangeRatesBean.get(currencyCode);
+    final var exchangeRates = this.exchangeRates.get(currencyCode);
     if (exchangeRates == null) {
       throw new NotFoundException("Exchange rate for " + currencyCode + " not found.");
     }

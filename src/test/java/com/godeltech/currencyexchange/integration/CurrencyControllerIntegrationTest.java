@@ -1,4 +1,4 @@
-package com.godeltech.currencyexchange.controller;
+package com.godeltech.currencyexchange.integration;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
@@ -60,7 +60,7 @@ public class CurrencyControllerIntegrationTest {
   }
 
   @Test
-  void shouldGetAllCurrencies() {
+  void getAllCurrencies() {
     final var currencies =
         List.of(
             Currency.builder().currencyCode("USD").build(),
@@ -83,13 +83,13 @@ public class CurrencyControllerIntegrationTest {
             .asString();
 
     final var expectedBody =
-        JsonFormatter.transformJsonFormat("src/integrationTest/resources/expected_currencies.json");
+        JsonFormatter.transformJsonFormat("src/test/resources/expected_currencies_int.json");
 
     assertEquals(expectedBody, responseBody);
   }
 
   @Test
-  void shouldAddCurrency() {
+  void addCurrency() {
 
     final var validCurrency = "USD";
 
@@ -107,7 +107,7 @@ public class CurrencyControllerIntegrationTest {
   }
 
   @Test
-  void shouldAddCurrency_currencyExists() {
+  void addCurrency_currencyExists() {
 
     final var validCurrency = "EUR";
     currencyRepository.save(eur);

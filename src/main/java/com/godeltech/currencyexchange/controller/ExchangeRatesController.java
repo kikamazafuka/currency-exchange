@@ -2,6 +2,9 @@ package com.godeltech.currencyexchange.controller;
 
 import com.godeltech.currencyexchange.service.ExchangeRateCacheService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -30,7 +33,17 @@ public class ExchangeRatesController {
     this.exchangeRateCacheService = exchangeRateCacheService;
   }
 
-  @Operation(summary = "Get latest exchange rates from cache")
+  @Operation(
+      summary = "Get latest exchange rates from cache",
+      security = @SecurityRequirement(name = "basicAuth"),
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successfully retrieved requested currency",
+            content = @Content(mediaType = "application/json")),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden")
+      })
   @GetMapping("/exchange-rates")
   public ResponseEntity<Map<String, Double>> getExchangeRate(
       @RequestParam

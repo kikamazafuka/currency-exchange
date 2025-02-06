@@ -4,6 +4,10 @@ import com.godeltech.currencyexchange.dto.CurrencyDto;
 import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.service.CurrencyService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import java.util.List;
@@ -33,7 +37,19 @@ public class CurrencyController {
     this.currencyMapper = currencyMapper;
   }
 
-  @Operation(summary = "Get all currencies stored in db")
+  @Operation(
+      summary = "Get all currencies stored in db",
+      security = @SecurityRequirement(name = "basicAuth"),
+      responses = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successfully retrieved the list of currencies",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = CurrencyDto.class))),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+      })
   @GetMapping
   public ResponseEntity<List<CurrencyDto>> getCurrencies() {
 
@@ -42,7 +58,22 @@ public class CurrencyController {
     return ResponseEntity.ok(currencyMapper.currenciesToCurrencyDtos(allCurrencies));
   }
 
-  @Operation(summary = "Add new currency to database")
+  @Operation(
+      summary = "Add new currency to database",
+      description = "This endpoint requires authentication and the ADMIN role",
+      security = @SecurityRequirement(name = "basicAuth"),
+      responses = {
+        @ApiResponse(
+            responseCode = "201",
+            description = "Successfully added new currency",
+            content =
+                @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = CurrencyDto.class))),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "403", description = "Forbidden"),
+        @ApiResponse(responseCode = "409", description = "Currency with this code already exists"),
+      })
   @PostMapping
   public ResponseEntity<CurrencyDto> addCurrency(
       @RequestParam
