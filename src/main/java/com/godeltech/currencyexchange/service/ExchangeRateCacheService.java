@@ -2,6 +2,7 @@ package com.godeltech.currencyexchange.service;
 
 import com.godeltech.currencyexchange.exception.CurrencyNotValidException;
 import com.godeltech.currencyexchange.exception.NotFoundException;
+import com.godeltech.currencyexchange.validator.CurrencyValidator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -13,15 +14,18 @@ import org.springframework.stereotype.Service;
 public final class ExchangeRateCacheService {
 
   private final Map<String, Map<String, Double>> exchangeRates;
+  private final CurrencyValidator currencyValidator;
 
   @Autowired
-  public ExchangeRateCacheService(Map<String, Map<String, Double>> exchangeRatesBean) {
+  public ExchangeRateCacheService(
+      Map<String, Map<String, Double>> exchangeRatesBean, CurrencyValidator currencyValidator) {
     this.exchangeRates = exchangeRatesBean;
+    this.currencyValidator = currencyValidator;
   }
 
   public Map<String, Double> getCurrencyCacheExchangeRates(String currencyCode, Double amount) {
 
-    if (!isCurrencyValid(currencyCode)) {
+    if (!currencyValidator.isCurrencyValid(currencyCode)) {
       throw new CurrencyNotValidException("Currency with such currency code doesn't exists");
     }
 
@@ -46,16 +50,5 @@ public final class ExchangeRateCacheService {
       entry.setValue(roundedValue.doubleValue());
     }
     return calculatedAmounts;
-  }
-
-  private boolean isCurrencyValid(String currencyCode) {
-    boolean isValid;
-    try {
-      java.util.Currency.getInstance(currencyCode);
-      isValid = true;
-    } catch (IllegalArgumentException e) {
-      isValid = false;
-    }
-    return isValid;
   }
 }

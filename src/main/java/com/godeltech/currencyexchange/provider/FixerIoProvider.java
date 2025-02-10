@@ -1,15 +1,12 @@
 package com.godeltech.currencyexchange.provider;
 
 import com.godeltech.currencyexchange.mapper.ApiResponseMapper;
-import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
 import com.godeltech.currencyexchange.provider.response.FixerIoApiResponse;
 import com.godeltech.currencyexchange.service.ApiRequestLogService;
-import com.godeltech.currencyexchange.service.CurrencyService;
+import com.godeltech.currencyexchange.service.CurrencyFilterService;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,18 +35,18 @@ public class FixerIoProvider implements ExchangeRateProvider {
 
   private final ApiResponseMapper apiResponseMapper;
 
-  private final CurrencyService currencyService;
+  private final CurrencyFilterService currencyFilterService;
 
   @Autowired
   public FixerIoProvider(
       RestTemplate restTemplate,
       ApiRequestLogService apiRequestLogService,
       ApiResponseMapper apiResponseMapper,
-      CurrencyService currencyService) {
+      CurrencyFilterService currencyFilterService) {
     this.restTemplate = restTemplate;
     this.apiRequestLogService = apiRequestLogService;
     this.apiResponseMapper = apiResponseMapper;
-    this.currencyService = currencyService;
+    this.currencyFilterService = currencyFilterService;
   }
 
   @Override
@@ -64,7 +61,10 @@ public class FixerIoProvider implements ExchangeRateProvider {
 
     if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
 
-      responseEntity.getBody().setRates(filterSupportedRates(responseEntity.getBody().getRates()));
+      responseEntity
+          .getBody()
+          .setRates(
+              currencyFilterService.filterSupportedRates(responseEntity.getBody().getRates()));
 
       final var externalApiResponse =
           apiResponseMapper.fixerToExternalApiResponse(responseEntity.getBody());
@@ -80,14 +80,6 @@ public class FixerIoProvider implements ExchangeRateProvider {
     }
 
     return responseExchangeRates;
-  }
-
-  private Map<String, Double> filterSupportedRates(Map<String, Double> rates) {
-    List<String> supportedCurrencies =
-        currencyService.getAllCurrencies().stream().map(Currency::getCurrencyCode).toList();
-    return rates.entrySet().stream()
-        .filter(entry -> supportedCurrencies.contains(entry.getKey()))
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private String buildRequestUrl() {

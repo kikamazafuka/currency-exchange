@@ -11,7 +11,7 @@ import com.godeltech.currencyexchange.mapper.ApiResponseMapper;
 import com.godeltech.currencyexchange.provider.response.ExchangeratesIoApiResponse;
 import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
 import com.godeltech.currencyexchange.service.ApiRequestLogService;
-import com.godeltech.currencyexchange.service.CurrencyService;
+import com.godeltech.currencyexchange.service.CurrencyFilterService;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,14 +35,14 @@ class ExchanratesIoProviderTest {
 
   @Mock private ApiResponseMapper apiResponseMapper;
 
-  @Mock private CurrencyService currencyService;
+  @Mock private CurrencyFilterService currencyFilterService;
 
   @InjectMocks private ExchangeratesIoProvider exchangeratesIoProvider;
 
   @BeforeEach
   void setUp() {
     ReflectionTestUtils.setField(
-            exchangeratesIoProvider, "apiUrl", "http://localhost:8080/api/v1/local-rates");
+        exchangeratesIoProvider, "apiUrl", "http://localhost:8080/api/v1/local-rates");
     ReflectionTestUtils.setField(exchangeratesIoProvider, "apiKey", "test");
   }
 

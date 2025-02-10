@@ -11,7 +11,7 @@ import com.godeltech.currencyexchange.mapper.ApiResponseMapper;
 import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
 import com.godeltech.currencyexchange.provider.response.FixerIoApiResponse;
 import com.godeltech.currencyexchange.service.ApiRequestLogService;
-import com.godeltech.currencyexchange.service.CurrencyService;
+import com.godeltech.currencyexchange.service.CurrencyFilterService;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +35,7 @@ class FixerIoProviderTest {
 
   @Mock private ApiResponseMapper apiResponseMapper;
 
-  @Mock private CurrencyService currencyService;
+  @Mock private CurrencyFilterService currencyFilterService;
 
   @InjectMocks private FixerIoProvider fixerIoProvider;
 

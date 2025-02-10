@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.godeltech.currencyexchange.service.ExternalApiService;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import java.nio.file.Files;
@@ -20,12 +21,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ExchangeRatesControllerIntegrationTest {
 
   @LocalServerPort private Integer port;
+
+  @MockitoBean private ExternalApiService externalApiService;
 
   private static final PostgreSQLContainer<?> postgres =
       new PostgreSQLContainer<>("postgres:16-alpine");
@@ -88,8 +92,7 @@ public class ExchangeRatesControllerIntegrationTest {
             .asString();
 
     final var expectedBody =
-        new String(
-            Files.readAllBytes(Paths.get("src/test/resources/expected_body_int.json")));
+        new String(Files.readAllBytes(Paths.get("src/test/resources/expected_body_int.json")));
     final var objectMapper = new ObjectMapper();
     final var expectedJson = objectMapper.readTree(expectedBody);
     final var responseJson = objectMapper.readTree(responseBody);

@@ -14,6 +14,7 @@ import com.godeltech.currencyexchange.exception.EntityAlreadyExistsException;
 import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.repository.CurrencyRepository;
+import com.godeltech.currencyexchange.validator.CurrencyValidator;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ class CurrencyServiceTest {
 
   @Mock private CurrencyRepository currencyRepository;
   @Mock private CurrencyMapper currencyMapper;
+  @Mock private CurrencyValidator currencyValidator;
 
   @InjectMocks private CurrencyService currencyService;
 
@@ -61,6 +63,7 @@ class CurrencyServiceTest {
     final var mockCurrency = new Currency(null, currencyCode);
 
     when(currencyRepository.existsByCurrencyCode(currencyCode)).thenReturn(false);
+    when(currencyValidator.isCurrencyValid(currencyCode)).thenReturn(true);
     when(currencyRepository.save(mockCurrency)).thenReturn(mockCurrency);
     when(currencyMapper.currencyToCurrencyDto(mockCurrency)).thenReturn(usdDto);
 
@@ -72,6 +75,7 @@ class CurrencyServiceTest {
   @Test
   public void addCurrency_throwsCurrencyAlreadyExistsException() {
 
+    when(currencyValidator.isCurrencyValid(currencyCode)).thenReturn(true);
     when(currencyRepository.existsByCurrencyCode(currencyCode)).thenReturn(true);
 
     final var exception =

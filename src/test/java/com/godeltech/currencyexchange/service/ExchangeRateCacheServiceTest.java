@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.godeltech.currencyexchange.exception.CurrencyNotValidException;
 import com.godeltech.currencyexchange.exception.NotFoundException;
+import com.godeltech.currencyexchange.validator.CurrencyValidator;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ExchangeRateCacheServiceTest {
 
   @Mock private Map<String, Map<String, Double>> exchangeRatesBean;
+
+  @Mock private CurrencyValidator currencyValidator;
 
   @InjectMocks private ExchangeRateCacheService exchangeRateCacheService;
 
@@ -35,6 +38,7 @@ class ExchangeRateCacheServiceTest {
     final var exchangeRates = Map.of("USD", 1.2, "GBP", 0.8);
     final var expectedRates = Map.of("USD", 120.0, "GBP", 80.0);
 
+    when(currencyValidator.isCurrencyValid(currencyCode)).thenReturn(true);
     when(exchangeRatesBean.get(currencyCode)).thenReturn(exchangeRates);
     when(exchangeRateCacheService.getCurrencyCacheExchangeRates(currencyCode, amount))
         .thenReturn(exchangeRates);
@@ -50,6 +54,9 @@ class ExchangeRateCacheServiceTest {
 
     final var amount = 100.0;
     final var currencyWithoutExchangeRates = "BYN";
+
+    when(currencyValidator.isCurrencyValid(currencyWithoutExchangeRates)).thenReturn(true);
+    when(exchangeRatesBean.get(currencyWithoutExchangeRates)).thenReturn(null);
 
     final var exception =
         assertThrows(

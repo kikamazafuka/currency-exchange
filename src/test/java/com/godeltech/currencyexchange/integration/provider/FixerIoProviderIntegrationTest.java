@@ -15,6 +15,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.godeltech.currencyexchange.JsonFormatter;
 import com.godeltech.currencyexchange.provider.FixerIoProvider;
 import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
+import com.godeltech.currencyexchange.service.ExternalApiService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,6 +29,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClientException;
 import org.testcontainers.containers.PostgreSQLContainer;
 
@@ -36,6 +38,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 public class FixerIoProviderIntegrationTest {
 
   @Autowired private FixerIoProvider fixerIoProvider;
+
+  @MockitoBean ExternalApiService externalApiService;
 
   @Value("${api.key.fixer}")
   private String apiKey;
