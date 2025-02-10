@@ -1,16 +1,16 @@
-package com.godeltech.currencyexchange.integration;
+package com.godeltech.currencyexchange.integration.controller;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.godeltech.currencyexchange.JsonFormatter;
+import com.godeltech.currencyexchange.model.Currency;
+import com.godeltech.currencyexchange.repository.CurrencyRepository;
+import com.godeltech.currencyexchange.service.ExternalApiService;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import lombok.SneakyThrows;
+import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,18 +20,21 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class ExchangeRatesControllerIntegrationTest {
+public class CurrencyControllerIntegrationTest {
 
   @LocalServerPort private Integer port;
+
+  @MockitoBean private ExternalApiService externalApiService;
 
   private static final PostgreSQLContainer<?> postgres =
       new PostgreSQLContainer<>("postgres:16-alpine");
   private static final String BASE_URL = "http://localhost:";
-  private static final String CURRENCIES_ENDPOINT = "/api/v1";
-  private static final String EXCHANGE_RATES_ENDPOINT = "/exchange-rates";
+  private static final String CURRENCIES_ENDPOINT = "/api/v1/currencies";
+  private Currency eur;
 
   @BeforeAll
   static void beforeAll() {
@@ -51,69 +54,78 @@ public class ExchangeRatesControllerIntegrationTest {
     registry.add("spring.datasource.password", postgres::getPassword);
   }
 
-  @Autowired Map<String, Map<String, Double>> exchangeRates;
+  @Autowired CurrencyRepository currencyRepository;
 
   @BeforeEach
   void setUp() {
     RestAssured.reset();
-    exchangeRates.clear();
+    currencyRepository.deleteAll();
+    eur = Currency.builder().currencyCode("EUR").build();
   }
 
   @Test
-  @SneakyThrows
-  void getCurrencyExchangeRates() {
-    Map<String, Double> eurRates = new HashMap<>();
-    eurRates.put("USD", 2.0417);
-    eurRates.put("CAD", 1.2600);
-    eurRates.put("GBP", 0.7191);
-    exchangeRates.put("EUR", eurRates);
-
-    final var amount = 100.0;
-    final var currencyCode = "EUR";
+  void getAllCurrencies() {
+    final var currencies =
+        List.of(
+            Currency.builder().currencyCode("USD").build(),
+            Currency.builder().currencyCode("EUR").build());
+    currencyRepository.saveAll(currencies);
 
     final var responseBody =
         RestAssured.given()
             .baseUri(BASE_URL + port)
             .contentType(ContentType.JSON)
-            .queryParam("currency", currencyCode)
-            .queryParam("amount", amount)
             .auth()
-            .basic("Ben", "test123")
+            .basic("Peter", "test123")
             .when()
-            .get(CURRENCIES_ENDPOINT + EXCHANGE_RATES_ENDPOINT)
+            .get(CURRENCIES_ENDPOINT)
             .then()
             .statusCode(200)
+            .body("currencyCode", hasItems("USD", "EUR"))
             .extract()
             .body()
             .asString();
 
     final var expectedBody =
-        new String(
-            Files.readAllBytes(Paths.get("src/test/resources/expected_body_int.json")));
-    final var objectMapper = new ObjectMapper();
-    final var expectedJson = objectMapper.readTree(expectedBody);
-    final var responseJson = objectMapper.readTree(responseBody);
+        JsonFormatter.transformJsonFormat("src/test/resources/expected_currencies_int.json");
 
-    assertEquals(expectedJson, responseJson);
+    assertEquals(expectedBody, responseBody);
   }
 
   @Test
-  void getCurrencyExchangeRates_currencyNotFound() {
+  void addCurrency() {
 
-    final var currencyCode = "BYN";
-    final var amount = 100.0;
+    final var validCurrency = "USD";
 
     RestAssured.given()
         .baseUri(BASE_URL + port)
         .contentType(ContentType.JSON)
-        .queryParam("currency", currencyCode)
-        .queryParam("amount", amount)
+        .queryParam("currency", validCurrency)
         .auth()
         .basic("Ben", "test123")
         .when()
-        .get(CURRENCIES_ENDPOINT + EXCHANGE_RATES_ENDPOINT)
+        .post(CURRENCIES_ENDPOINT)
         .then()
-        .statusCode(404)
-        .body("message", equalTo("Exchange rate for " + currencyCode + " not found."));
+        .statusCode(201)
+        .body("currencyCode", equalTo(validCurrency));
+  }
+
+  @Test
+  void addCurrency_currencyExists() {
+
+    final var validCurrency = "EUR";
+    currencyRepository.save(eur);
+
+    RestAssured.given()
+        .baseUri(BASE_URL + port)
+        .contentType(ContentType.JSON)
+        .queryParam("currency", validCurrency)
+        .auth()
+        .basic("Ben", "test123")
+        .when()
+        .post(CURRENCIES_ENDPOINT)
+        .then()
+        .statusCode(409)
+        .body("message", equalTo("Currency with this code already exists"));
   }
 }

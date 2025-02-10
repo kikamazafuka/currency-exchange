@@ -4,6 +4,7 @@ import com.godeltech.currencyexchange.mapper.ApiResponseMapper;
 import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
 import com.godeltech.currencyexchange.provider.response.FixerIoApiResponse;
 import com.godeltech.currencyexchange.service.ApiRequestLogService;
+import com.godeltech.currencyexchange.service.CurrencyFilterService;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -34,14 +35,18 @@ public class FixerIoProvider implements ExchangeRateProvider {
 
   private final ApiResponseMapper apiResponseMapper;
 
+  private final CurrencyFilterService currencyFilterService;
+
   @Autowired
   public FixerIoProvider(
       RestTemplate restTemplate,
       ApiRequestLogService apiRequestLogService,
-      ApiResponseMapper apiResponseMapper) {
+      ApiResponseMapper apiResponseMapper,
+      CurrencyFilterService currencyFilterService) {
     this.restTemplate = restTemplate;
     this.apiRequestLogService = apiRequestLogService;
     this.apiResponseMapper = apiResponseMapper;
+    this.currencyFilterService = currencyFilterService;
   }
 
   @Override
@@ -56,8 +61,13 @@ public class FixerIoProvider implements ExchangeRateProvider {
 
     if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
 
+      responseEntity
+          .getBody()
+          .setRates(
+              currencyFilterService.filterSupportedRates(responseEntity.getBody().getRates()));
+
       final var externalApiResponse =
-          apiResponseMapper.toExternalApiResponse(responseEntity.getBody());
+          apiResponseMapper.fixerToExternalApiResponse(responseEntity.getBody());
 
       apiRequestLogService.updateExternalApiRequestLogs(externalApiResponse, requestUrl);
 

@@ -1,15 +1,15 @@
 package com.godeltech.currencyexchange.provider;
 
 import com.godeltech.currencyexchange.mapper.ApiResponseMapper;
+import com.godeltech.currencyexchange.provider.response.ExchangeratesIoApiResponse;
 import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
-import com.godeltech.currencyexchange.provider.response.LocalApiResponse;
 import com.godeltech.currencyexchange.service.ApiRequestLogService;
+import com.godeltech.currencyexchange.service.CurrencyFilterService;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -18,15 +18,15 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @Slf4j
-public class LocalIoProvider implements ExchangeRateProvider {
+public class ExchangeratesIoProvider implements ExchangeRateProvider {
 
-  @Value("${api.name.local}")
+  @Value("${api.name.exchangerates}")
   private String providerName;
 
-  @Value("${api.key.local}")
+  @Value("${api.key.exchangerates}")
   private String apiKey;
 
-  @Value("${api.url.local}")
+  @Value("${api.url.exchangerates}")
   private String apiUrl;
 
   private final RestTemplate restTemplate;
@@ -35,14 +35,18 @@ public class LocalIoProvider implements ExchangeRateProvider {
 
   private final ApiResponseMapper apiResponseMapper;
 
+  private final CurrencyFilterService currencyFilterService;
+
   @Autowired
-  public LocalIoProvider(
+  public ExchangeratesIoProvider(
       RestTemplate restTemplate,
       ApiRequestLogService apiRequestLogService,
-      ApiResponseMapper apiResponseMapper) {
+      ApiResponseMapper apiResponseMapper,
+      CurrencyFilterService currencyFilterService) {
     this.restTemplate = restTemplate;
     this.apiRequestLogService = apiRequestLogService;
     this.apiResponseMapper = apiResponseMapper;
+    this.currencyFilterService = currencyFilterService;
   }
 
   @Override
@@ -53,35 +57,33 @@ public class LocalIoProvider implements ExchangeRateProvider {
     final var requestUrl = buildRequestUrl();
 
     final var responseEntity =
-        restTemplate.exchange(
-            requestUrl,
-            HttpMethod.GET,
-            null,
-            new ParameterizedTypeReference<List<LocalApiResponse>>() {});
+        restTemplate.exchange(requestUrl, HttpMethod.GET, null, ExchangeratesIoApiResponse.class);
 
     if (responseEntity.getStatusCode() == HttpStatus.OK && responseEntity.getBody() != null) {
 
       responseEntity
           .getBody()
-          .forEach(
-              body ->
-                  apiRequestLogService.updateExternalApiRequestLogs(
-                      apiResponseMapper.toExternalApiResponse(body), requestUrl));
+          .setRates(
+              currencyFilterService.filterSupportedRates(responseEntity.getBody().getRates()));
 
-      responseExchangeRates.addAll(
-          apiResponseMapper.toExternalApiResponseList(responseEntity.getBody()));
+      final var externalApiResponse =
+          apiResponseMapper.exchangeratesIoToExternalApiResponse(responseEntity.getBody());
 
+      apiRequestLogService.updateExternalApiRequestLogs(externalApiResponse, requestUrl);
+
+      responseExchangeRates.add(externalApiResponse);
     } else {
       log.error(
           "Failed to fetch {} exchange rates: {}",
           getProviderName(),
           responseEntity.getStatusCode());
     }
+
     return responseExchangeRates;
   }
 
   private String buildRequestUrl() {
-    return UriComponentsBuilder.fromUriString(apiUrl + "/api/v1/local-rates")
+    return UriComponentsBuilder.fromUriString(apiUrl + "/v1/latest")
         .queryParam("access_key", apiKey)
         .toUriString();
   }

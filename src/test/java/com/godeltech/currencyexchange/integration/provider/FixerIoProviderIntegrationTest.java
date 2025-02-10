@@ -1,8 +1,9 @@
-package com.godeltech.currencyexchange.integration;
+package com.godeltech.currencyexchange.integration.provider;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,17 +15,23 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.godeltech.currencyexchange.JsonFormatter;
 import com.godeltech.currencyexchange.provider.FixerIoProvider;
 import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
+import com.godeltech.currencyexchange.service.ExternalApiService;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClientException;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @WireMockTest
@@ -32,8 +39,15 @@ public class FixerIoProviderIntegrationTest {
 
   @Autowired private FixerIoProvider fixerIoProvider;
 
+  @MockitoBean ExternalApiService externalApiService;
+
   @Value("${api.key.fixer}")
   private String apiKey;
+
+  @LocalServerPort private Integer port;
+
+  private static final PostgreSQLContainer<?> postgres =
+      new PostgreSQLContainer<>("postgres:16-alpine");
 
   @RegisterExtension
   static WireMockExtension wireMockExtension =
@@ -42,6 +56,19 @@ public class FixerIoProviderIntegrationTest {
   @DynamicPropertySource
   public static void setUpWireMockBaseUrl(DynamicPropertyRegistry registry) {
     registry.add("api.url.fixer", wireMockExtension::baseUrl);
+    registry.add("spring.datasource.url", postgres::getJdbcUrl);
+    registry.add("spring.datasource.username", postgres::getUsername);
+    registry.add("spring.datasource.password", postgres::getPassword);
+  }
+
+  @BeforeAll
+  static void beforeAll() {
+    postgres.start();
+  }
+
+  @AfterAll
+  static void afterAll() {
+    postgres.stop();
   }
 
   @Test
@@ -65,6 +92,8 @@ public class FixerIoProviderIntegrationTest {
     final var responses = fixerIoProvider.getExchangeRates();
 
     assertEquals(expectedResponse, responses.getFirst());
+
+    wireMockExtension.verify(getRequestedFor(urlPathEqualTo("/api/latest")));
   }
 
   @Test
@@ -75,5 +104,7 @@ public class FixerIoProviderIntegrationTest {
             .willReturn(aResponse().withStatus(HttpStatus.BAD_REQUEST.value())));
 
     assertThrows(RestClientException.class, () -> fixerIoProvider.getExchangeRates());
+
+    wireMockExtension.verify(getRequestedFor(urlPathEqualTo("/api/latest")));
   }
 }

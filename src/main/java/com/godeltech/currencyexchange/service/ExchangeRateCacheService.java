@@ -1,6 +1,8 @@
 package com.godeltech.currencyexchange.service;
 
+import com.godeltech.currencyexchange.exception.CurrencyNotValidException;
 import com.godeltech.currencyexchange.exception.NotFoundException;
+import com.godeltech.currencyexchange.validator.CurrencyValidator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -12,19 +14,23 @@ import org.springframework.stereotype.Service;
 public final class ExchangeRateCacheService {
 
   private final Map<String, Map<String, Double>> exchangeRates;
+  private final CurrencyValidator currencyValidator;
 
   @Autowired
-  public ExchangeRateCacheService(Map<String, Map<String, Double>> exchangeRatesBean) {
+  public ExchangeRateCacheService(
+      Map<String, Map<String, Double>> exchangeRatesBean, CurrencyValidator currencyValidator) {
     this.exchangeRates = exchangeRatesBean;
-  }
-
-  public Map<String, Double> getExchangeRates(String baseCurrency) {
-    return exchangeRates.get(baseCurrency);
+    this.currencyValidator = currencyValidator;
   }
 
   public Map<String, Double> getCurrencyCacheExchangeRates(String currencyCode, Double amount) {
 
+    if (!currencyValidator.isCurrencyValid(currencyCode)) {
+      throw new CurrencyNotValidException("Currency with such currency code doesn't exists");
+    }
+
     final var exchangeRates = this.exchangeRates.get(currencyCode);
+
     if (exchangeRates == null) {
       throw new NotFoundException("Exchange rate for " + currencyCode + " not found.");
     }

@@ -5,6 +5,8 @@ import com.godeltech.currencyexchange.model.ApiRequestLog;
 import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
 import com.godeltech.currencyexchange.repository.ApiRequestLogRepository;
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -41,12 +43,14 @@ public class ApiRequestLogService {
 
   private static ApiRequestLog getApiRequestLog(
       String url, String currency, Double rate, String baseCurrency) {
+    final var convertedRate =
+        new BigDecimal(String.valueOf(rate)).setScale(6, RoundingMode.HALF_UP).doubleValue();
     return ApiRequestLog.builder()
         .timestamp(LocalDateTime.now())
         .url(url)
         .requestCurrency(baseCurrency)
         .targetCurrency(currency)
-        .currencyRate(rate)
+        .currencyRate(convertedRate)
         .build();
   }
 }

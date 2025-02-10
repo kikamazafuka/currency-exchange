@@ -46,4 +46,14 @@ public class GlobalExceptionHandler {
         .contentType(MediaType.APPLICATION_JSON)
         .body("{\"message\": \"" + ex.getMessage() + "\"}");
   }
+
+  @ExceptionHandler(CurrencyNotValidException.class)
+  public ResponseEntity<String> handleCurrencyNotValid(CurrencyNotValidException ex) {
+
+    log.error("Currency code is not valid");
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body("{\"message\": \"" + ex.getMessage() + "\"}");
+  }
 }

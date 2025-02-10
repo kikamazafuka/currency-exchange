@@ -9,10 +9,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.godeltech.currencyexchange.dto.CurrencyDto;
+import com.godeltech.currencyexchange.exception.CurrencyNotValidException;
 import com.godeltech.currencyexchange.exception.EntityAlreadyExistsException;
 import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.model.Currency;
 import com.godeltech.currencyexchange.repository.CurrencyRepository;
+import com.godeltech.currencyexchange.validator.CurrencyValidator;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,7 @@ class CurrencyServiceTest {
 
   @Mock private CurrencyRepository currencyRepository;
   @Mock private CurrencyMapper currencyMapper;
+  @Mock private CurrencyValidator currencyValidator;
 
   @InjectMocks private CurrencyService currencyService;
 
@@ -60,6 +63,7 @@ class CurrencyServiceTest {
     final var mockCurrency = new Currency(null, currencyCode);
 
     when(currencyRepository.existsByCurrencyCode(currencyCode)).thenReturn(false);
+    when(currencyValidator.isCurrencyValid(currencyCode)).thenReturn(true);
     when(currencyRepository.save(mockCurrency)).thenReturn(mockCurrency);
     when(currencyMapper.currencyToCurrencyDto(mockCurrency)).thenReturn(usdDto);
 
@@ -69,8 +73,9 @@ class CurrencyServiceTest {
   }
 
   @Test
-  public void testAddCurrency_throwsCurrencyAlreadyExistsException() {
+  public void addCurrency_throwsCurrencyAlreadyExistsException() {
 
+    when(currencyValidator.isCurrencyValid(currencyCode)).thenReturn(true);
     when(currencyRepository.existsByCurrencyCode(currencyCode)).thenReturn(true);
 
     final var exception =
@@ -80,6 +85,19 @@ class CurrencyServiceTest {
             "Expected addCurrency() to throw CurrencyAlreadyExistsException");
 
     assertEquals("Currency with this code already exists", exception.getMessage());
+  }
+
+  @Test
+  void addCurrency_throwsCurrencyNotValidException() {
+
+    String invalidCurrencyCode = "UUU";
+
+    CurrencyNotValidException exception =
+        assertThrows(
+            CurrencyNotValidException.class,
+            () -> currencyService.addCurrency(invalidCurrencyCode));
+
+    assertEquals("Currency with such currency code doesn't exists", exception.getMessage());
   }
 
   @Test
