@@ -1,5 +1,6 @@
 package com.godeltech.currencyexchange.service;
 
+import com.godeltech.currencyexchange.exception.CurrencyNotValidException;
 import com.godeltech.currencyexchange.exception.NotFoundException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,13 +19,14 @@ public final class ExchangeRateCacheService {
     this.exchangeRates = exchangeRatesBean;
   }
 
-  public Map<String, Double> getExchangeRates(String baseCurrency) {
-    return exchangeRates.get(baseCurrency);
-  }
-
   public Map<String, Double> getCurrencyCacheExchangeRates(String currencyCode, Double amount) {
 
+    if (!isCurrencyValid(currencyCode)) {
+      throw new CurrencyNotValidException("Currency with such currency code doesn't exists");
+    }
+
     final var exchangeRates = this.exchangeRates.get(currencyCode);
+
     if (exchangeRates == null) {
       throw new NotFoundException("Exchange rate for " + currencyCode + " not found.");
     }
@@ -44,5 +46,16 @@ public final class ExchangeRateCacheService {
       entry.setValue(roundedValue.doubleValue());
     }
     return calculatedAmounts;
+  }
+
+  private boolean isCurrencyValid(String currencyCode) {
+    boolean isValid;
+    try {
+      java.util.Currency.getInstance(currencyCode);
+      isValid = true;
+    } catch (IllegalArgumentException e) {
+      isValid = false;
+    }
+    return isValid;
   }
 }

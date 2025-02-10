@@ -3,6 +3,11 @@ package com.godeltech.currencyexchange.configuration;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 import com.godeltech.currencyexchange.security.CurrencyUserService;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +27,10 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@SecurityScheme(name = "basicAuth", type = SecuritySchemeType.HTTP, scheme = "basic")
+@OpenAPIDefinition(
+    info = @Info(title = "Exchange rates API", version = "v1"),
+    security = @SecurityRequirement(name = "basicAuth"))
 public class WebSecurityConfig {
 
   private final CurrencyUserService currencyUserService;

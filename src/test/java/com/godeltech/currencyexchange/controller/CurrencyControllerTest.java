@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.godeltech.currencyexchange.JsonFormatter;
 import com.godeltech.currencyexchange.dto.CurrencyDto;
+import com.godeltech.currencyexchange.exception.CurrencyNotValidException;
 import com.godeltech.currencyexchange.exception.EntityAlreadyExistsException;
 import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.model.Currency;
@@ -150,5 +151,21 @@ class CurrencyControllerTest {
         .andExpect(status().isConflict())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.message").value("Currency with this code already exists"));
+  }
+
+  @Test
+  @SneakyThrows
+  @WithMockUser
+  public void addCurrency_throwsCurrencyNotValidException() {
+
+    final var exception = new CurrencyNotValidException("Currency not valid");
+
+    when(currencyService.addCurrency(currencyCode)).thenThrow(exception);
+
+    mockMvc
+        .perform(post(CURRENCIES_ENDPOINT).param("currency", currencyCode).with(csrf()))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.message").value("Currency not valid"));
   }
 }

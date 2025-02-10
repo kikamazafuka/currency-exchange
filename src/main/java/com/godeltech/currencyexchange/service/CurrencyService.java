@@ -1,6 +1,7 @@
 package com.godeltech.currencyexchange.service;
 
 import com.godeltech.currencyexchange.dto.CurrencyDto;
+import com.godeltech.currencyexchange.exception.CurrencyNotValidException;
 import com.godeltech.currencyexchange.exception.EntityAlreadyExistsException;
 import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.model.Currency;
@@ -29,6 +30,9 @@ public class CurrencyService {
   @Transactional
   public CurrencyDto addCurrency(String currencyCode) {
 
+    if (!isCurrencyValid(currencyCode)) {
+      throw new CurrencyNotValidException("Currency with such currency code doesn't exists");
+    }
     if (existsByCurrencyCode(currencyCode)) {
       throw new EntityAlreadyExistsException("Currency with this code already exists");
     }
@@ -42,5 +46,16 @@ public class CurrencyService {
 
   public boolean existsByCurrencyCode(String currency) {
     return currencyRepository.existsByCurrencyCode(currency);
+  }
+
+  private boolean isCurrencyValid(String currencyCode) {
+    boolean isValid;
+    try {
+      java.util.Currency.getInstance(currencyCode);
+      isValid = true;
+    } catch (IllegalArgumentException e) {
+      isValid = false;
+    }
+    return isValid;
   }
 }

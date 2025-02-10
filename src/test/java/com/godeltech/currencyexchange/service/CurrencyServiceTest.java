@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.godeltech.currencyexchange.dto.CurrencyDto;
+import com.godeltech.currencyexchange.exception.CurrencyNotValidException;
 import com.godeltech.currencyexchange.exception.EntityAlreadyExistsException;
 import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.model.Currency;
@@ -69,7 +70,7 @@ class CurrencyServiceTest {
   }
 
   @Test
-  public void testAddCurrency_throwsCurrencyAlreadyExistsException() {
+  public void addCurrency_throwsCurrencyAlreadyExistsException() {
 
     when(currencyRepository.existsByCurrencyCode(currencyCode)).thenReturn(true);
 
@@ -80,6 +81,19 @@ class CurrencyServiceTest {
             "Expected addCurrency() to throw CurrencyAlreadyExistsException");
 
     assertEquals("Currency with this code already exists", exception.getMessage());
+  }
+
+  @Test
+  void addCurrency_throwsCurrencyNotValidException() {
+
+    String invalidCurrencyCode = "UUU";
+
+    CurrencyNotValidException exception =
+        assertThrows(
+            CurrencyNotValidException.class,
+            () -> currencyService.addCurrency(invalidCurrencyCode));
+
+    assertEquals("Currency with such currency code doesn't exists", exception.getMessage());
   }
 
   @Test

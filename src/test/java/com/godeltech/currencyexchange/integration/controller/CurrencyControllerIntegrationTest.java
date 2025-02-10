@@ -1,4 +1,4 @@
-package com.godeltech.currencyexchange.integration;
+package com.godeltech.currencyexchange.integration.controller;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;

@@ -1,4 +1,4 @@
-package com.godeltech.currencyexchange.integration;
+package com.godeltech.currencyexchange.integration.provider;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -12,28 +12,37 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.godeltech.currencyexchange.JsonFormatter;
-import com.godeltech.currencyexchange.provider.FixerIoProvider;
+import com.godeltech.currencyexchange.provider.ExchangeratesIoProvider;
 import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.web.client.RestClientException;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @WireMockTest
-public class FixerIoProviderIntegrationTest {
+public class ExchangeratesIoProviderIntegrationTest {
 
-  @Autowired private FixerIoProvider fixerIoProvider;
+  @Autowired private ExchangeratesIoProvider exchangeratesIoProvider;
 
-  @Value("${api.key.fixer}")
+  @Value("${api.key.exchangerates}")
   private String apiKey;
+
+  @LocalServerPort private Integer port;
+
+  private static final PostgreSQLContainer<?> postgres =
+      new PostgreSQLContainer<>("postgres:16-alpine");
 
   @RegisterExtension
   static WireMockExtension wireMockExtension =
@@ -41,7 +50,20 @@ public class FixerIoProviderIntegrationTest {
 
   @DynamicPropertySource
   public static void setUpWireMockBaseUrl(DynamicPropertyRegistry registry) {
-    registry.add("api.url.fixer", wireMockExtension::baseUrl);
+    registry.add("api.url.exchangerates", wireMockExtension::baseUrl);
+    registry.add("spring.datasource.url", postgres::getJdbcUrl);
+    registry.add("spring.datasource.username", postgres::getUsername);
+    registry.add("spring.datasource.password", postgres::getPassword);
+  }
+
+  @BeforeAll
+  static void beforeAll() {
+    postgres.start();
+  }
+
+  @AfterAll
+  static void afterAll() {
+    postgres.stop();
   }
 
   @Test
@@ -52,7 +74,7 @@ public class FixerIoProviderIntegrationTest {
         JsonFormatter.transformJsonFormat("src/test/resources/expected_response.json");
 
     wireMockExtension.stubFor(
-        get(urlPathEqualTo("/api/latest"))
+        get(urlPathEqualTo("/v1/latest"))
             .withQueryParam("access_key", equalTo(apiKey))
             .willReturn(
                 aResponse()
@@ -62,7 +84,7 @@ public class FixerIoProviderIntegrationTest {
 
     final var objectMapper = new ObjectMapper();
     final var expectedResponse = objectMapper.readValue(mockedBody, ExternalApiResponse.class);
-    final var responses = fixerIoProvider.getExchangeRates();
+    final var responses = exchangeratesIoProvider.getExchangeRates();
 
     assertEquals(expectedResponse, responses.getFirst());
   }
@@ -70,10 +92,10 @@ public class FixerIoProviderIntegrationTest {
   @Test
   public void getExchangeRates_failure() {
     wireMockExtension.stubFor(
-        get(urlPathEqualTo("/api/latest"))
+        get(urlPathEqualTo("/v1/latest"))
             .withQueryParam("access_key", equalTo(apiKey))
             .willReturn(aResponse().withStatus(HttpStatus.BAD_REQUEST.value())));
 
-    assertThrows(RestClientException.class, () -> fixerIoProvider.getExchangeRates());
+    assertThrows(RestClientException.class, () -> exchangeratesIoProvider.getExchangeRates());
   }
 }

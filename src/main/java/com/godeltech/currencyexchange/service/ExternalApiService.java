@@ -4,6 +4,9 @@ import com.godeltech.currencyexchange.exception.InvalidResponseException;
 import com.godeltech.currencyexchange.provider.ExchangeRateProvider;
 import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
 import jakarta.annotation.PostConstruct;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +43,7 @@ public class ExternalApiService {
   }
 
   private void updateCacheWithBestRates(Map<String, Map<String, Double>> bestRates) {
-    exchangeRates.putAll(bestRates);
+    exchangeRates.putAll(createRatesForSupportedCurrencies(bestRates));
   }
 
   private Map<String, Map<String, Double>> getBestRatesFromProviders() {
@@ -68,15 +71,55 @@ public class ExternalApiService {
   private void createExchangeRatesFromResponse(
       ExternalApiResponse response, Map<String, Map<String, Double>> bestRates) {
 
-    String baseCurrency = response.getBase();
-
-    Map<String, Double> cachedRates =
-        bestRates.computeIfAbsent(baseCurrency, k -> new ConcurrentHashMap<>());
+    final var baseCurrency = response.getBase();
+    final var cachedRates = bestRates.computeIfAbsent(baseCurrency, k -> new ConcurrentHashMap<>());
 
     response.getRates().forEach(updateRatesWithMax(cachedRates));
   }
 
   private static BiConsumer<String, Double> updateRatesWithMax(Map<String, Double> cachedRates) {
     return (currency, rate) -> cachedRates.merge(currency, rate, Math::max);
+  }
+
+  public Map<String, Map<String, Double>> createRatesForSupportedCurrencies(
+      Map<String, Map<String, Double>> bestRates) {
+
+    final var reversedExchangeRates = new HashMap<>(bestRates);
+
+    if (!reversedExchangeRates.isEmpty()) {
+
+      final var baseCurrencyEntry = bestRates.entrySet().iterator().next();
+      final var baseCurrencyRates = baseCurrencyEntry.getValue();
+      final var baseCurrencyCode = baseCurrencyEntry.getKey();
+
+      baseCurrencyRates.forEach(
+          (fromCurr, fromRate) -> {
+            baseCurrencyRates.forEach(
+                (toCurr, toRate) ->
+                    reversedExchangeRates
+                        .computeIfAbsent(fromCurr, k -> new HashMap<>())
+                        .put(toCurr, calculateRate(baseCurrencyRates, fromCurr, toCurr)));
+            reversedExchangeRates
+                .computeIfAbsent(fromCurr, k -> new HashMap<>())
+                .put(baseCurrencyCode, getRateToBase(fromRate));
+          });
+    }
+    return reversedExchangeRates;
+  }
+
+  private static double getRateToBase(Double fromRate) {
+    return new BigDecimal(String.valueOf(1 / fromRate))
+        .setScale(6, RoundingMode.HALF_UP)
+        .doubleValue();
+  }
+
+  private static Double calculateRate(
+      Map<String, Double> rates, String fromCurrency, String toCurrency) {
+
+    final var toCurr = BigDecimal.valueOf(rates.get(toCurrency));
+    final var fromCurr = BigDecimal.valueOf(rates.get(fromCurrency));
+    final var result = toCurr.divide(fromCurr, 6, RoundingMode.HALF_UP);
+
+    return result.doubleValue();
   }
 }
