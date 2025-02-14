@@ -29,8 +29,11 @@ public class CurrencyService {
     this.currencyValidator = currencyValidator;
   }
 
-  public List<Currency> getAllCurrencies() {
-    return currencyRepository.findAll();
+  public List<CurrencyDto> getAllCurrencies() {
+
+    List<Currency> currencies = currencyRepository.findAll();
+
+    return currencyMapper.currenciesToCurrencyDtos(currencies);
   }
 
   @Transactional

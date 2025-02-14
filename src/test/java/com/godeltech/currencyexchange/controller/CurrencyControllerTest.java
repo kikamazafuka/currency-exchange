@@ -61,9 +61,9 @@ class CurrencyControllerTest {
   @WithMockUser
   void getCurrencies() {
 
-    when(currencyService.getAllCurrencies()).thenReturn(List.of(usd, eur));
-    when(currencyMapper.currenciesToCurrencyDtos(List.of(usd, eur)))
-        .thenReturn(List.of(usdDto, eurDto));
+    when(currencyService.getAllCurrencies()).thenReturn(List.of(usdDto, eurDto));
+//    when(currencyMapper.currenciesToCurrencyDtos(List.of(usd, eur)))
+//        .thenReturn(List.of(usdDto, eurDto));
 
     final var result =
         mockMvc

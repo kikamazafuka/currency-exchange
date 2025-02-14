@@ -35,6 +35,7 @@ class CurrencyServiceTest {
   private Currency eur;
   private Currency usd;
   private CurrencyDto usdDto;
+  private CurrencyDto eurDto;
   private String currencyCode;
 
   @BeforeEach
@@ -42,6 +43,7 @@ class CurrencyServiceTest {
     eur = Currency.builder().id(1L).currencyCode("EUR").build();
     usd = Currency.builder().id(2L).currencyCode("USD").build();
     usdDto = new CurrencyDto("USD");
+    eurDto = new CurrencyDto("EUR");
     currencyCode = "USD";
   }
 
@@ -52,7 +54,7 @@ class CurrencyServiceTest {
 
     final var currencies = currencyService.getAllCurrencies();
 
-    assertThat(currencies).isNotNull().containsExactly(usd, eur);
+    assertThat(currencies).isNotNull().containsExactly(eurDto, usdDto);
   }
 
   @Test

@@ -49,7 +49,7 @@ All endpoints require **authorization and authentication**. Predefined users are
 - **ADMIN role**: Username `Ben`, Password `test123`
 - **USER role**: Username `Peter`, Password `test123`
 
-### GET All Currencies Endpoint
+- GET All Currencies Endpoint
 
 - **Retrieve all currencies by visiting:**  
   `http://localhost:8081/api/v1/currencies`
