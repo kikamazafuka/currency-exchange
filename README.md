@@ -28,7 +28,7 @@ The application integrates with external API providers to fetch exchange rate da
 
 1. **Clone the repository**:
    ```bash
-   git clone https://gitlab.godeltech.com/a.semenas/currency-exchange.git
+   git clone https://github.com/kikamazafuka/currency-exchange.git
 
 2. **Set Up PostgreSQL**
 Run PostgreSQL in a container:
