@@ -29,6 +29,7 @@ class CurrencyServiceTest {
   @Mock private CurrencyRepository currencyRepository;
   @Mock private CurrencyMapper currencyMapper;
   @Mock private CurrencyValidator currencyValidator;
+  @Mock private ExternalApiService externalApiService;
 
   @InjectMocks private CurrencyService currencyService;
 
@@ -78,6 +79,8 @@ class CurrencyServiceTest {
     final var actualDto = currencyService.addCurrency(currencyCode);
 
     assertEquals(usdDto, actualDto);
+
+    verify(externalApiService).updateExchangeRates();
   }
 
   @Test
