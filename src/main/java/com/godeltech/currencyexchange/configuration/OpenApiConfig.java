@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @SecurityScheme(name = "basicAuth", type = SecuritySchemeType.HTTP, scheme = "basic")
 @OpenAPIDefinition(
-        info = @io.swagger.v3.oas.annotations.info.Info(title = "Exchange rates API", version = "v1"),
-        security = @SecurityRequirement(name = "basicAuth"))
+    info = @io.swagger.v3.oas.annotations.info.Info(title = "Exchange rates API", version = "v1"),
+    security = @SecurityRequirement(name = "basicAuth"))
 public class OpenApiConfig {
 
   @Bean

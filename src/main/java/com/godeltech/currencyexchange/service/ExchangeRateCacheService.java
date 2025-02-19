@@ -38,18 +38,9 @@ public final class ExchangeRateCacheService {
     return calculateAmount(exchangeRates, amount);
   }
 
-  private Map<String, Double> calculateAmount(
-      Map<String, Double> exchangeRates, Double amount) {
+  private Map<String, Double> calculateAmount(Map<String, Double> exchangeRates, Double amount) {
 
     Map<String, Double> calculatedAmounts = new HashMap<>(exchangeRates);
-
-//    calculatedAmounts.forEach(
-//        (k, v) ->
-//            calculatedAmounts.put(
-//                k,
-//                new BigDecimal(String.valueOf(v * amount))
-//                    .setScale(6, RoundingMode.HALF_UP)
-//                    .doubleValue()));
 
     calculatedAmounts.replaceAll(
         (key, value) ->

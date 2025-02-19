@@ -50,7 +50,13 @@ class CurrencyServiceTest {
   @Test
   void getAllCurrencies() {
 
-    when(currencyRepository.findAll()).thenReturn(List.of(usd, eur));
+    final var expectedCurrenciesDtos = List.of(eurDto, usdDto);
+
+    final var fetchedCurrencies = List.of(eur, usd);
+
+    when(currencyRepository.findAll()).thenReturn(fetchedCurrencies);
+    when(currencyMapper.currenciesToCurrencyDtos(fetchedCurrencies))
+        .thenReturn(expectedCurrenciesDtos);
 
     final var currencies = currencyService.getAllCurrencies();
 

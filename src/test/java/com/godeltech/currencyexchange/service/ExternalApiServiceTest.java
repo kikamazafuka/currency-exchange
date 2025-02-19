@@ -61,16 +61,16 @@ class ExternalApiServiceTest {
     verify(exchangeRatesBean).putAll(anyMap());
   }
 
-//  @Test
-//  public void init() {
-//
-//    final var response = new ExternalApiResponse("USD", new Date().toString(), Map.of("EUR", 0.85));
-//
-//    when(provider.getExchangeRates()).thenReturn(List.of(response));
-//
-//    externalApiService.init();
-//
-//    verify(exchangeRatesBean).putAll(anyMap());
-//    verify(provider).getExchangeRates();
-//  }
+  @Test
+  public void updateExchangeRatesTest() {
+
+    final var response = new ExternalApiResponse("USD", new Date().toString(), Map.of("EUR", 0.85));
+
+    when(provider.getExchangeRates()).thenReturn(List.of(response));
+
+    externalApiService.updateExchangeRates();
+
+    verify(exchangeRatesBean).putAll(anyMap());
+    verify(provider).getExchangeRates();
+  }
 }
