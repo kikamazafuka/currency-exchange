@@ -3,7 +3,6 @@ package com.godeltech.currencyexchange.service;
 import com.godeltech.currencyexchange.exception.InvalidResponseException;
 import com.godeltech.currencyexchange.provider.ExchangeRateProvider;
 import com.godeltech.currencyexchange.provider.response.ExternalApiResponse;
-import jakarta.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -13,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 
@@ -32,12 +30,6 @@ public class ExternalApiService {
     this.providers = providers;
   }
 
-  @PostConstruct
-  public void init() {
-    updateExchangeRates();
-  }
-
-  @Scheduled(fixedDelayString = "${fixedRate.in.milliseconds}")
   public void updateExchangeRates() {
     updateCacheWithBestRates(getBestRatesFromProviders());
   }

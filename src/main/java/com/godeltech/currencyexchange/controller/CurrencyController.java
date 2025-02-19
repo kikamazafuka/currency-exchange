@@ -1,7 +1,6 @@
 package com.godeltech.currencyexchange.controller;
 
 import com.godeltech.currencyexchange.dto.CurrencyDto;
-import com.godeltech.currencyexchange.mapper.CurrencyMapper;
 import com.godeltech.currencyexchange.service.CurrencyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,12 +28,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class CurrencyController {
 
   private final CurrencyService currencyService;
-  private final CurrencyMapper currencyMapper;
 
   @Autowired
-  public CurrencyController(CurrencyService currencyService, CurrencyMapper currencyMapper) {
+  public CurrencyController(CurrencyService currencyService) {
     this.currencyService = currencyService;
-    this.currencyMapper = currencyMapper;
   }
 
   @Operation(
@@ -54,8 +51,8 @@ public class CurrencyController {
   public ResponseEntity<List<CurrencyDto>> getCurrencies() {
 
     log.info("CurrencyController::Getting list of all currencies");
-    final var allCurrencies = currencyService.getAllCurrencies();
-    return ResponseEntity.ok(currencyMapper.currenciesToCurrencyDtos(allCurrencies));
+
+    return ResponseEntity.ok(currencyService.getAllCurrencies());
   }
 
   @Operation(

@@ -38,17 +38,16 @@ public final class ExchangeRateCacheService {
     return calculateAmount(exchangeRates, amount);
   }
 
-  private static Map<String, Double> calculateAmount(
-      Map<String, Double> exchangeRates, Double amount) {
+  private Map<String, Double> calculateAmount(Map<String, Double> exchangeRates, Double amount) {
 
     Map<String, Double> calculatedAmounts = new HashMap<>(exchangeRates);
 
-    for (final var entry : calculatedAmounts.entrySet()) {
-      final var calculatedValue = entry.getValue() * amount;
-      final var roundedValue =
-          new BigDecimal(String.valueOf(calculatedValue)).setScale(6, RoundingMode.HALF_UP);
-      entry.setValue(roundedValue.doubleValue());
-    }
+    calculatedAmounts.replaceAll(
+        (key, value) ->
+            new BigDecimal(String.valueOf(value * amount))
+                .setScale(6, RoundingMode.HALF_UP)
+                .doubleValue());
+
     return calculatedAmounts;
   }
 }

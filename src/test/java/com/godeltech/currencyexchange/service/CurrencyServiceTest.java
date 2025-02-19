@@ -29,12 +29,14 @@ class CurrencyServiceTest {
   @Mock private CurrencyRepository currencyRepository;
   @Mock private CurrencyMapper currencyMapper;
   @Mock private CurrencyValidator currencyValidator;
+  @Mock private ExternalApiService externalApiService;
 
   @InjectMocks private CurrencyService currencyService;
 
   private Currency eur;
   private Currency usd;
   private CurrencyDto usdDto;
+  private CurrencyDto eurDto;
   private String currencyCode;
 
   @BeforeEach
@@ -42,17 +44,24 @@ class CurrencyServiceTest {
     eur = Currency.builder().id(1L).currencyCode("EUR").build();
     usd = Currency.builder().id(2L).currencyCode("USD").build();
     usdDto = new CurrencyDto("USD");
+    eurDto = new CurrencyDto("EUR");
     currencyCode = "USD";
   }
 
   @Test
   void getAllCurrencies() {
 
-    when(currencyRepository.findAll()).thenReturn(List.of(usd, eur));
+    final var expectedCurrenciesDtos = List.of(eurDto, usdDto);
+
+    final var fetchedCurrencies = List.of(eur, usd);
+
+    when(currencyRepository.findAll()).thenReturn(fetchedCurrencies);
+    when(currencyMapper.currenciesToCurrencyDtos(fetchedCurrencies))
+        .thenReturn(expectedCurrenciesDtos);
 
     final var currencies = currencyService.getAllCurrencies();
 
-    assertThat(currencies).isNotNull().containsExactly(usd, eur);
+    assertThat(currencies).isNotNull().containsExactly(eurDto, usdDto);
   }
 
   @Test
@@ -70,6 +79,8 @@ class CurrencyServiceTest {
     final var actualDto = currencyService.addCurrency(currencyCode);
 
     assertEquals(usdDto, actualDto);
+
+    verify(externalApiService).updateExchangeRates();
   }
 
   @Test

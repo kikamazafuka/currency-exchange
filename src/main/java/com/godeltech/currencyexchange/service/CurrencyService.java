@@ -18,19 +18,25 @@ public class CurrencyService {
   private final CurrencyRepository currencyRepository;
   private final CurrencyMapper currencyMapper;
   private final CurrencyValidator currencyValidator;
+  private final ExternalApiService externalApiService;
 
   @Autowired
   public CurrencyService(
       CurrencyRepository currencyRepository,
       CurrencyMapper currencyMapper,
-      CurrencyValidator currencyValidator) {
+      CurrencyValidator currencyValidator,
+      ExternalApiService externalApiService) {
     this.currencyRepository = currencyRepository;
     this.currencyMapper = currencyMapper;
     this.currencyValidator = currencyValidator;
+    this.externalApiService = externalApiService;
   }
 
-  public List<Currency> getAllCurrencies() {
-    return currencyRepository.findAll();
+  public List<CurrencyDto> getAllCurrencies() {
+
+    List<Currency> currencies = currencyRepository.findAll();
+
+    return currencyMapper.currenciesToCurrencyDtos(currencies);
   }
 
   @Transactional
@@ -46,6 +52,8 @@ public class CurrencyService {
     final var currency = Currency.builder().currencyCode(currencyCode).build();
 
     currencyRepository.save(currency);
+
+    externalApiService.updateExchangeRates();
 
     return currencyMapper.currencyToCurrencyDto(currency);
   }

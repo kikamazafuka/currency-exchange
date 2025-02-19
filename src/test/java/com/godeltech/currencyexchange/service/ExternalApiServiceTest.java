@@ -62,13 +62,13 @@ class ExternalApiServiceTest {
   }
 
   @Test
-  public void init() {
+  public void updateExchangeRatesTest() {
 
     final var response = new ExternalApiResponse("USD", new Date().toString(), Map.of("EUR", 0.85));
 
     when(provider.getExchangeRates()).thenReturn(List.of(response));
 
-    externalApiService.init();
+    externalApiService.updateExchangeRates();
 
     verify(exchangeRatesBean).putAll(anyMap());
     verify(provider).getExchangeRates();

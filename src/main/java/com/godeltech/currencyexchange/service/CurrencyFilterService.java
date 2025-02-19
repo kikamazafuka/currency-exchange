@@ -1,5 +1,7 @@
 package com.godeltech.currencyexchange.service;
 
+import com.godeltech.currencyexchange.model.Currency;
+import com.godeltech.currencyexchange.repository.CurrencyRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -9,18 +11,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class CurrencyFilterService {
 
-  private final CurrencyService currencyService;
+  private final CurrencyRepository currencyRepository;
 
   @Autowired
-  public CurrencyFilterService(CurrencyService currencyService) {
-    this.currencyService = currencyService;
+  public CurrencyFilterService(CurrencyRepository currencyRepository) {
+    this.currencyRepository = currencyRepository;
   }
 
   public Map<String, Double> filterSupportedRates(Map<String, Double> rates) {
     List<String> supportedCurrencies =
-        currencyService.getAllCurrencies().stream()
-            .map(com.godeltech.currencyexchange.model.Currency::getCurrencyCode)
-            .toList();
+        currencyRepository.findAll().stream().map(Currency::getCurrencyCode).toList();
     return rates.entrySet().stream()
         .filter(entry -> supportedCurrencies.contains(entry.getKey()))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

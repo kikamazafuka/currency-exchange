@@ -27,10 +27,6 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@SecurityScheme(name = "basicAuth", type = SecuritySchemeType.HTTP, scheme = "basic")
-@OpenAPIDefinition(
-    info = @Info(title = "Exchange rates API", version = "v1"),
-    security = @SecurityRequirement(name = "basicAuth"))
 public class WebSecurityConfig {
 
   private final CurrencyUserService currencyUserService;
